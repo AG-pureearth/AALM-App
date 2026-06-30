@@ -1,0 +1,11 @@
+# runtime run folders (model inputs/outputs are regenerated)
+runs/
+
+# python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# os
+Thumbs.db
+.DS_Store

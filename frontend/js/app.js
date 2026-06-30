@@ -1,0 +1,507 @@
+// app.js — AALM front-end application logic.
+// Builds the input form from shared defaults + schema metadata, posts a run config
+// to the backend, and renders the model results (summary + interactive chart).
+
+(function () {
+  "use strict";
+  const API = (window.AALM_API_BASE || "");
+  const S = window.AALM_SCHEMA;
+  const clone = (o) => (window.structuredClone ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const ce = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+  let DEFAULTS = null;   // canonical defaults from /api/defaults (incl. growthBySex)
+  let cfg = null;        // the working run configuration
+  let lastResult = null; // last successful /api/run response
+
+  // ---------------------------------------------------------------- helpers
+  function numInput(value, onChange, opts = {}) {
+    const inp = ce("input");
+    inp.type = "number";
+    inp.value = value;
+    if (opts.min != null) inp.min = opts.min;
+    if (opts.step != null) inp.step = opts.step; else inp.step = "any";
+    inp.addEventListener("input", () => {
+      const v = inp.value === "" ? "" : parseFloat(inp.value);
+      onChange(v);
+    });
+    return inp;
+  }
+
+  function field(labelText, unit, control, help) {
+    const f = ce("div", "field");
+    const lab = ce("label");
+    lab.textContent = labelText + (unit ? ` (${unit})` : "");
+    if (help) { const q = ce("span", "help", "ⓘ"); q.title = help; lab.appendChild(q); }
+    f.appendChild(lab);
+    f.appendChild(control);
+    return f;
+  }
+
+  function selectInput(value, options, onChange) {
+    const sel = ce("select");
+    options.forEach(o => {
+      const op = ce("option"); op.value = o.v; op.textContent = o.t;
+      if (String(o.v) === String(value)) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.addEventListener("change", () => onChange(isNaN(+sel.value) ? sel.value : +sel.value));
+    return sel;
+  }
+
+  function section(title, opts = {}) {
+    const sec = ce("section", "card" + (opts.advanced ? " advanced" : ""));
+    const head = ce("div", "card-head");
+    head.appendChild(ce("h2", null, title));
+    const chev = ce("span", "chev", opts.collapsed ? "▸" : "▾");
+    head.appendChild(chev);
+    const body = ce("div", "card-body");
+    if (opts.collapsed) body.style.display = "none";
+    head.addEventListener("click", () => {
+      const hidden = body.style.display === "none";
+      body.style.display = hidden ? "" : "none";
+      chev.textContent = hidden ? "▾" : "▸";
+    });
+    sec.appendChild(head); sec.appendChild(body);
+    sec._body = body;
+    return sec;
+  }
+
+  // editable vector table: ages row + one row per named value array (mutates arrays in place)
+  function vectorTable(ages, agesUnit, rows, onStructural, opts = {}) {
+    const wrap = ce("div", "vtable-wrap");
+    const tbl = ce("table", "vtable");
+    // header: ages
+    const thead = ce("thead");
+    const hr = ce("tr");
+    hr.appendChild(ce("th", "rowhdr", `Age (${agesUnit})`));
+    ages.forEach((a, ci) => {
+      const th = ce("th");
+      if (opts.agesEditable === false) {
+        th.textContent = (Math.round(a / 365 * 100) / 100); // days -> years display
+      } else {
+        const inp = numInput(a, (v) => { ages[ci] = v; }, { min: 0 });
+        th.appendChild(inp);
+      }
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    // body: value rows
+    const tb = ce("tbody");
+    rows.forEach(r => {
+      const tr = ce("tr");
+      tr.appendChild(ce("td", "rowhdr", r.label));
+      r.arr.forEach((val, ci) => {
+        const td = ce("td");
+        td.appendChild(numInput(val, (v) => { r.arr[ci] = v; }));
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    wrap.appendChild(tbl);
+
+    if (opts.agesEditable !== false) {
+      const ctrls = ce("div", "vtable-ctrls");
+      const addB = ce("button", "mini", "+ age");
+      addB.type = "button";
+      addB.addEventListener("click", () => {
+        const last = ages.length ? ages[ages.length - 1] : 0;
+        ages.push(last + 1);
+        rows.forEach(r => r.arr.push(r.arr.length ? r.arr[r.arr.length - 1] : 0));
+        onStructural();
+      });
+      const delB = ce("button", "mini", "− age");
+      delB.type = "button";
+      delB.addEventListener("click", () => {
+        if (ages.length <= 1) return;
+        ages.pop(); rows.forEach(r => r.arr.pop());
+        onStructural();
+      });
+      ctrls.appendChild(addB); ctrls.appendChild(delB);
+      wrap.appendChild(ctrls);
+    }
+    return wrap;
+  }
+
+  // ensure media array shapes are consistent with sources + age lengths
+  function normalizeMedia(md) {
+    const n = Math.max(1, parseInt(md.sources) || 1);
+    md.sources = n;
+    if (md.mode === "conc") {
+      const ca = md.concAgesYr.length, ia = md.intakeAgesYr.length;
+      md.concs = md.concs || [];
+      md.frac = md.frac || [];
+      while (md.concs.length < n) md.concs.push(md.concs.length ? md.concs[0].slice() : new Array(ca).fill(0));
+      md.concs.length = n;
+      md.concs = md.concs.map(a => fitLen(a, ca, 0));
+      while (md.frac.length < n) md.frac.push(new Array(ia).fill(md.frac.length === 0 ? 1 : 0));
+      md.frac.length = n;
+      md.frac = md.frac.map(a => fitLen(a, ia, 0));
+      md.intakeAmt = fitLen(md.intakeAmt, ia, 0);
+      md.rba = fitLen(md.rba, n, 1);
+      md.masks = md.masks || [];
+    } else {
+      const sa = md.srcAgesYr.length;
+      md.srcAmt = md.srcAmt || [];
+      while (md.srcAmt.length < n) md.srcAmt.push(new Array(sa).fill(0));
+      md.srcAmt.length = n;
+      md.srcAmt = md.srcAmt.map(a => fitLen(a, sa, 0));
+      md.rba = fitLen(md.rba, n, 1);
+    }
+  }
+  function fitLen(arr, len, fill) {
+    arr = (arr || []).slice();
+    while (arr.length < len) arr.push(arr.length ? arr[arr.length - 1] : fill);
+    arr.length = len;
+    return arr;
+  }
+
+  // ---------------------------------------------------------------- sections
+  function renderSimulation(parent) {
+    const sec = section("Simulation");
+    const b = sec._body;
+    const grid = ce("div", "grid");
+    grid.appendChild(field(S.sim.simName.label, "", (() => {
+      const inp = ce("input"); inp.type = "text"; inp.value = cfg.simName; inp.maxLength = 19;
+      inp.addEventListener("input", () => { cfg.simName = inp.value; });
+      return inp;
+    })(), S.sim.simName.help));
+    grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, numInput(cfg.sim.ageMinYr, v => cfg.sim.ageMinYr = v, { min: 0 })));
+    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, numInput(cfg.sim.ageMaxYr, v => cfg.sim.ageMaxYr = v, { min: 0 })));
+    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, step: 1 }), S.sim.stepsPerDay.help));
+    grid.appendChild(field(S.sim.outwrite.label, "", numInput(cfg.sim.outwrite, v => cfg.sim.outwrite = v, { min: 1, step: 1 }), S.sim.outwrite.help));
+    grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
+      cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
+      renderGrowth(growthHost);
+    })));
+    grid.appendChild(field(S.sim.solution.label, "", selectInput(cfg.sim.iterate, S.sim.solution.options, v => {
+      cfg.sim.iterate = v; iterSec.style.display = v === 1 ? "" : "none";
+    }), S.sim.solution.help));
+    grid.appendChild(field(S.sim.interp.label, "", selectInput(cfg.sim.interp, S.sim.interp.options, v => cfg.sim.interp = v), S.sim.interp.help));
+    grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
+    b.appendChild(grid);
+    parent.appendChild(sec);
+  }
+
+  function renderMedia(parent) {
+    const sec = section("Exposure media");
+    sec._body.appendChild(mediaHost);
+    parent.appendChild(sec);
+    drawMedia();
+  }
+  function drawMedia() {
+    mediaHost.innerHTML = "";
+    Object.keys(S.media).forEach(key => {
+      const md = cfg.media[key];
+      const meta = S.media[key];
+      normalizeMedia(md);
+      const card = ce("div", "media-card");
+      const head = ce("div", "media-head");
+      const cb = ce("input"); cb.type = "checkbox"; cb.checked = !!md.active;
+      cb.addEventListener("change", () => { md.active = cb.checked; drawMedia(); });
+      const title = ce("label", "media-title");
+      title.appendChild(cb); title.appendChild(ce("span", null, " " + meta.label));
+      head.appendChild(title);
+      if (md.active) {
+        const srcWrap = ce("span", "src-sel");
+        srcWrap.appendChild(ce("span", "muted", "Sources: "));
+        srcWrap.appendChild(selectInput(md.sources, [{ v: 1, t: "1" }, { v: 2, t: "2" }, { v: 3, t: "3" }], v => { md.sources = v; drawMedia(); }));
+        head.appendChild(srcWrap);
+      }
+      card.appendChild(head);
+
+      if (md.active) {
+        const body = ce("div", "media-body");
+        if (md.mode === "conc") {
+          // concentration table
+          body.appendChild(ce("div", "subhead", `Concentration (${meta.concUnit})`));
+          const concRows = [];
+          for (let i = 0; i < md.sources; i++) concRows.push({ label: `Source ${i + 1}`, arr: md.concs[i] });
+          body.appendChild(vectorTable(md.concAgesYr, "yr", concRows, drawMedia));
+          // intake table
+          body.appendChild(ce("div", "subhead", `Intake (${meta.intakeUnit})`));
+          const intakeRows = [{ label: "Intake", arr: md.intakeAmt }];
+          if (md.sources > 1) for (let i = 0; i < md.sources; i++) intakeRows.push({ label: `Fraction S${i + 1}`, arr: md.frac[i] });
+          body.appendChild(vectorTable(md.intakeAgesYr, "yr", intakeRows, drawMedia));
+          // RBA
+          body.appendChild(rbaRow(md));
+          // masks
+          body.appendChild(maskEditor(md));
+        } else {
+          body.appendChild(ce("div", "subhead", `Source amount (${meta.amtUnit})`));
+          const rows = [];
+          for (let i = 0; i < md.sources; i++) rows.push({ label: `Source ${i + 1}`, arr: md.srcAmt[i] });
+          body.appendChild(vectorTable(md.srcAgesYr, "yr", rows, drawMedia));
+          body.appendChild(rbaRow(md));
+        }
+        card.appendChild(body);
+      }
+      mediaHost.appendChild(card);
+    });
+  }
+  function rbaRow(md) {
+    const row = ce("div", "rba-row");
+    row.appendChild(ce("span", "subhead inline", "Relative bioavailability (RBA): "));
+    for (let i = 0; i < md.sources; i++) {
+      const w = ce("span", "rba-cell");
+      w.appendChild(ce("span", "muted", `S${i + 1} `));
+      w.appendChild(numInput(md.rba[i], v => md.rba[i] = v, { min: 0 }));
+      row.appendChild(w);
+    }
+    return row;
+  }
+  function maskEditor(md) {
+    const box = ce("div", "mask-box");
+    const head = ce("div", "subhead inline");
+    head.textContent = "Time masks (intermittent exposure): ";
+    const add = ce("button", "mini", "+ mask"); add.type = "button";
+    add.addEventListener("click", () => { md.masks.push({ source: 1, period: 7, first: 6, last: 7 }); drawMedia(); });
+    head.appendChild(add);
+    box.appendChild(head);
+    (md.masks || []).forEach((mk, mi) => {
+      const r = ce("div", "mask-row");
+      const mkField = (lab, key, opts) => { const s = ce("span", "mask-cell"); s.appendChild(ce("span", "muted", lab)); s.appendChild(numInput(mk[key], v => mk[key] = v, opts)); return s; };
+      r.appendChild(mkField("source ", "source", { min: 1, step: 1 }));
+      r.appendChild(mkField("period(d) ", "period", { min: 1, step: 1 }));
+      r.appendChild(mkField("first day ", "first", { min: 0, step: 1 }));
+      r.appendChild(mkField("last day ", "last", { min: 0, step: 1 }));
+      const del = ce("button", "mini", "×"); del.type = "button";
+      del.addEventListener("click", () => { md.masks.splice(mi, 1); drawMedia(); });
+      r.appendChild(del);
+      box.appendChild(r);
+    });
+    return box;
+  }
+
+  function renderIter(parent) {
+    iterSec = section("Allowable-concentration solver");
+    const b = iterSec._body;
+    b.appendChild(ce("p", "muted", "Used when Solution type is “Solve for allowable concentration”. Iterates the chosen source to reach the target blood lead level."));
+    const grid = ce("div", "grid");
+    const m = S.iter;
+    const it = cfg.iter;
+    grid.appendChild(field(m.media.label, "", selectInput(it.media, m.media.options, v => it.media = v)));
+    grid.appendChild(field(m.subtype.label, "", numInput(it.subtype, v => it.subtype = v, { min: 1, step: 1 })));
+    grid.appendChild(field(m.dustsoil.label, "", selectInput(it.dustsoil, m.dustsoil.options, v => it.dustsoil = v)));
+    grid.appendChild(field(m.targetbll.label, m.targetbll.unit, numInput(it.targetbll, v => it.targetbll = v, { min: 0 })));
+    grid.appendChild(field(m.metric.label, "", selectInput(it.metric, m.metric.options, v => it.metric = v)));
+    grid.appendChild(field(m.startAgeYr.label, m.startAgeYr.unit, numInput(it.startAgeYr, v => it.startAgeYr = v, { min: 0 })));
+    grid.appendChild(field(m.endAgeYr.label, m.endAgeYr.unit, numInput(it.endAgeYr, v => it.endAgeYr = v, { min: 0 })));
+    grid.appendChild(field(m.precision.label, "", numInput(it.precision, v => it.precision = v, { min: 0 })));
+    grid.appendChild(field(m.maxiter.label, "", numInput(it.maxiter, v => it.maxiter = v, { min: 1, step: 1 })));
+    grid.appendChild(field(m.gsd.label, "", numInput(it.gsd, v => it.gsd = v, { min: 1 })));
+    grid.appendChild(field(m.tailfrac.label, "", numInput(it.tailfrac, v => it.tailfrac = v, { min: 0 })));
+    b.appendChild(grid);
+    iterSec.style.display = cfg.sim.iterate === 1 ? "" : "none";
+    parent.appendChild(iterSec);
+  }
+
+  function renderGrowth(host) {
+    host.innerHTML = "";
+    const grid = ce("div", "grid");
+    Object.keys(S.growth).forEach(k => {
+      grid.appendChild(field(S.growth[k].label, S.growth[k].unit, numInput(cfg.growth[k], v => cfg.growth[k] = v)));
+    });
+    host.appendChild(grid);
+  }
+
+  function renderPhysConst(parent) {
+    const sec = section("Physiology — constants", { advanced: true, collapsed: true });
+    const grid = ce("div", "grid grid-tight");
+    Object.keys(S.physConst).forEach(k => {
+      const [unit, def] = S.physConst[k];
+      grid.appendChild(field(k, unit === "--" ? "" : unit, numInput(cfg.physConst[k], v => cfg.physConst[k] = v), def));
+    });
+    sec._body.appendChild(grid);
+    parent.appendChild(sec);
+  }
+
+  function renderPhysTimeDep(parent) {
+    const sec = section("Physiology — age-varying", { advanced: true, collapsed: true });
+    sec._body.appendChild(ce("p", "muted", "Each row is a parameter; each column is an age breakpoint (years). Values are filled between breakpoints using the Stepwise/Interpolated setting."));
+    const rows = Object.keys(S.physTimeDep).map(k => ({ label: k, arr: cfg.physTimeDep[k], help: S.physTimeDep[k][1] }));
+    // build with fixed (non-editable) age columns shown in years
+    const t = vectorTable(cfg.physAges, "yr", rows, () => {}, { agesEditable: false });
+    sec._body.appendChild(t);
+    parent.appendChild(sec);
+  }
+
+  function renderLung(parent) {
+    const sec = section("Lung / respiratory parameters", { advanced: true, collapsed: true });
+    sec._body.appendChild(ce("p", "muted", "One column per inhaled-particle source (1–3)."));
+    const tbl = ce("table", "vtable");
+    const thead = ce("thead"); const hr = ce("tr");
+    hr.appendChild(ce("th", "rowhdr", "Parameter"));
+    ["Source 1", "Source 2", "Source 3"].forEach(s => hr.appendChild(ce("th", null, s)));
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tb = ce("tbody");
+    Object.keys(S.lung).forEach(k => {
+      const [unit, def] = S.lung[k];
+      const tr = ce("tr");
+      const rh = ce("td", "rowhdr"); rh.textContent = k + (unit ? ` (${unit})` : "");
+      rh.title = def; tr.appendChild(rh);
+      cfg.lung[k].forEach((val, i) => {
+        const td = ce("td"); td.appendChild(numInput(val, v => cfg.lung[k][i] = v)); tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); sec._body.appendChild(tbl);
+    parent.appendChild(sec);
+  }
+
+  // ---------------------------------------------------------------- run + results
+  function buildPayload() {
+    Object.keys(cfg.media).forEach(k => normalizeMedia(cfg.media[k]));
+    const c = clone(cfg);
+    if (c.sim.iterate !== 1) c.iter = null;
+    delete c.growthBySex;
+    return c;
+  }
+
+  async function runModel() {
+    const btn = $("#run-btn");
+    btn.disabled = true; btn.textContent = "Running…";
+    setStatus("Running the model — this can take a few seconds for long simulations…", "busy");
+    try {
+      const res = await fetch(API + "/api/run", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload())
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setStatus("Run did not complete: " + (data.message || "unknown error"), "error");
+        renderError(data);
+        return;
+      }
+      lastResult = data;
+      setStatus(`Run “${data.name}” complete.`, "ok");
+      renderResults(data);
+    } catch (e) {
+      setStatus("Could not reach the model server. Is it running? " + e.message, "error");
+    } finally {
+      btn.disabled = false; btn.textContent = "Run model";
+    }
+  }
+
+  function setStatus(msg, kind) {
+    const s = $("#status"); s.textContent = msg; s.className = "status " + (kind || "");
+  }
+
+  function renderError(data) {
+    const host = $("#results"); host.innerHTML = "";
+    const box = ce("div", "errbox");
+    box.appendChild(ce("h3", null, "The model stopped before producing results"));
+    if (data.message) box.appendChild(ce("p", null, data.message));
+    const detail = (data.runInfo || "") + (data.stdoutTail ? "\n\n--- model output (tail) ---\n" + data.stdoutTail : "");
+    if (detail.trim()) { const pre = ce("pre", "log"); pre.textContent = detail; box.appendChild(pre); }
+    host.appendChild(box);
+  }
+
+  let selectedSeries = new Set(["Cblood"]);
+  function renderResults(data) {
+    const host = $("#results"); host.innerHTML = "";
+
+    // summary cards
+    const sm = data.summary;
+    const cards = ce("div", "summary");
+    const card = (label, val, unit) => { const c = ce("div", "stat"); c.appendChild(ce("div", "stat-val", val + (unit ? " " + unit : ""))); c.appendChild(ce("div", "stat-lab", label)); return c; };
+    cards.appendChild(card("Peak blood lead", sm.peakBLL, "µg/dL"));
+    cards.appendChild(card("Age at peak", sm.peakAgeYr, "yr"));
+    cards.appendChild(card("Mean blood lead", sm.meanBLL, "µg/dL"));
+    cards.appendChild(card("Final blood lead", sm.finalBLL, "µg/dL"));
+    host.appendChild(cards);
+
+    if (data.runInfo && /Allowable|allowable|Solved|solve|target/i.test(data.runInfo)) {
+      const ri = ce("details", "runinfo");
+      ri.appendChild(ce("summary", null, "Solver / run info"));
+      const pre = ce("pre", "log"); pre.textContent = data.runInfo; ri.appendChild(pre);
+      host.appendChild(ri);
+    }
+
+    // layout: series picker + chart
+    const layout = ce("div", "results-layout");
+    const picker = ce("div", "series-picker");
+    picker.appendChild(ce("h3", null, "Series"));
+    S.outputs.groups.forEach(g => {
+      const present = g.keys.filter(k => data.series[k]);
+      if (!present.length) return;
+      picker.appendChild(ce("div", "pick-group", g.name));
+      present.forEach(k => {
+        const meta = S.outputs.meta[k] || { label: k, unit: "" };
+        const id = "pick_" + k;
+        const row = ce("label", "pick");
+        const cb = ce("input"); cb.type = "checkbox"; cb.id = id; cb.checked = selectedSeries.has(k);
+        cb.addEventListener("change", () => { if (cb.checked) selectedSeries.add(k); else selectedSeries.delete(k); drawChart(data); });
+        row.appendChild(cb);
+        row.appendChild(ce("span", null, " " + meta.label + (meta.unit ? ` (${meta.unit})` : "")));
+        picker.appendChild(row);
+      });
+    });
+    const chartWrap = ce("div", "chart-wrap");
+    const chartHost = ce("div"); chartHost.id = "chart"; chartWrap.appendChild(chartHost);
+    const dl = ce("button", "secondary", "Download plotted data (CSV)");
+    dl.addEventListener("click", () => downloadCsv(data));
+    chartWrap.appendChild(dl);
+
+    layout.appendChild(picker); layout.appendChild(chartWrap);
+    host.appendChild(layout);
+    drawChart(data);
+  }
+
+  function drawChart(data) {
+    const keys = [...selectedSeries].filter(k => data.series[k]);
+    const sameUnit = new Set(keys.map(k => (S.outputs.meta[k] || {}).unit));
+    const yLabel = sameUnit.size === 1 ? [...sameUnit][0] : "value";
+    const series = keys.map((k, i) => ({
+      name: (S.outputs.meta[k] || { label: k }).label,
+      values: data.series[k],
+      color: window.AALM_PALETTE[i % window.AALM_PALETTE.length]
+    }));
+    renderChart($("#chart"), { x: data.xYears, series, xLabel: "Age (years)", yLabel });
+  }
+
+  function downloadCsv(data) {
+    const keys = [...selectedSeries].filter(k => data.series[k]);
+    let csv = "Age_years," + keys.join(",") + "\n";
+    for (let i = 0; i < data.xYears.length; i++) {
+      csv += data.xYears[i] + "," + keys.map(k => data.series[k][i]).join(",") + "\n";
+    }
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = ce("a"); a.href = URL.createObjectURL(blob); a.download = `${data.name}_plot.csv`; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ---------------------------------------------------------------- bootstrap
+  let mediaHost, growthHost, iterSec;
+  async function init() {
+    try {
+      const r = await fetch(API + "/api/defaults");
+      DEFAULTS = await r.json();
+    } catch (e) {
+      setStatus("Could not load defaults from the server. Is the backend running?", "error");
+      return;
+    }
+    cfg = clone(DEFAULTS);
+    cfg.growth = clone(DEFAULTS.growthBySex[String(DEFAULTS.growth.sex)] || DEFAULTS.growth);
+
+    const form = $("#form");
+    mediaHost = ce("div");
+    renderSimulation(form);
+    renderMedia(form);
+    renderIter(form);
+
+    const growthSec = section("Growth parameters", { advanced: true, collapsed: true });
+    growthHost = ce("div"); growthSec._body.appendChild(growthHost); renderGrowth(growthHost);
+    form.appendChild(growthSec);
+
+    renderPhysConst(form);
+    renderPhysTimeDep(form);
+    renderLung(form);
+
+    $("#run-btn").addEventListener("click", runModel);
+    setStatus("Ready. Adjust inputs and press “Run model”.", "");
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();

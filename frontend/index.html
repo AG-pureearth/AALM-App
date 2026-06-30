@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AALM — All Ages Lead Model</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>All Ages Lead Model</h1>
+    <span class="sub">browser front-end (v3.1 engine)</span>
+    <span class="spacer"></span>
+    <button id="run-btn">Run model</button>
+  </header>
+
+  <div id="status" class="status">Loading…</div>
+
+  <main>
+    <div class="form-col">
+      <div class="col-title">Inputs</div>
+      <div id="form"><!-- form sections injected here --></div>
+    </div>
+    <div class="results-col">
+      <div class="col-title">Results</div>
+      <div id="results">
+        <div class="placeholder">Set your inputs on the left and press <b>Run model</b> to see blood-lead and tissue results here.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- config base (leave empty to use same origin; set when frontend is hosted separately) -->
+  <script>window.AALM_API_BASE = "";</script>
+  <script src="js/schema.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
