@@ -77,27 +77,33 @@ background. When you’re finished, simply close that black window to shut the a
 > you through everything below. You can close it any time, and replay it later by
 > clicking the **❓ Guide** button at the top right.
 
-1. **Name your run.** At the top of the inputs, type a short **Simulation name**
-   (letters, numbers, and underscores only — for example `City_Test1`).
+The app has three tabs across the top: **Simulation inputs**, **Advanced options**,
+and **Results**.
+
+1. **Name your run.** On the **Simulation inputs** tab, type a short **Simulation
+   name** (letters, numbers, and underscores only — for example `City_Test1`).
 2. **Set the basics.** Choose the start and end **age** (in years), the **sex**, and
    leave the other settings as they are unless you have a reason to change them.
 3. **Set the exposure.** Under **Exposure media**, turn on the sources that apply
    (Soil, Dust, Water, Air, Food, Other) and type in the lead **concentrations** and
    **intake** amounts. You can add more age columns with the **“+ age”** button.
-4. **(Optional) Advanced settings.** The **Growth**, **Physiology**, and **Lung**
-   sections are collapsed and pre-filled with standard values. Open them only if you
-   need to change them.
+4. **(Optional) Advanced options.** Growth, physiology, and lung settings live on the
+   **Advanced options** tab. They are pre-filled with standard values — open that tab
+   only if you need to change them. Most simulations use the defaults.
 5. **Run it.** Click the green **“Run model”** button at the top right. It takes a few
-   seconds (longer for very long simulations).
-6. **Read the results** on the right:
+   seconds (longer for very long simulations). The **Results** tab opens automatically
+   when it finishes.
+6. **Read the results** on the **Results** tab:
    - The four boxes show the **highest, average, and final blood lead levels** and the
-     age at the peak.
+     age at the peak. **Click** the highest, average, or final box to mark that value
+     right on the chart; click again to remove it.
    - The chart shows blood lead over the person’s life. Tick other boxes on the left to
      add more lines (kidney, liver, bone, etc.).
    - Move your mouse over the chart to read exact values at any age.
    - Click **“Download plotted data (CSV)”** to save the numbers as a spreadsheet file.
-7. **Try another scenario.** Change any inputs and click **Run model** again. (Give it
-   a new **Simulation name** if you want to keep the previous run’s files.)
+7. **Try another scenario.** Go back to the **Simulation inputs** tab, change anything,
+   and click **Run model** again. (Give it a new **Simulation name** if you want to keep
+   the previous run’s files.)
 
 ---
 

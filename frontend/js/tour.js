@@ -7,22 +7,22 @@
 
   const STEPS = [
     { center: true, title: "Welcome to the AALM app",
-      text: "This 6-step tour shows how to run a simulation. You can replay it any time with the “Guide” button at the top." },
-    { sel: "#f-simname", title: "Step 1 — Name your run",
+      text: "This short tour shows how to run a simulation. You can replay it any time with the “Guide” button at the top." },
+    { sel: "#f-simname", tab: "inputs", title: "Step 1 — Name your run",
       text: "Type a short name using letters, numbers, or underscores (for example City_Test1). It labels your results files." },
-    { sel: '[data-tour="sim"]', title: "Step 2 — Set the basics",
+    { sel: '[data-tour="sim"]', tab: "inputs", title: "Step 2 — Set the basics",
       text: "Choose the start and end age (in years) and the sex. The other settings have sensible defaults — leave them unless you have a reason to change them." },
-    { sel: '[data-tour="media"]', title: "Step 3 — Set the exposure",
+    { sel: '[data-tour="media"]', tab: "inputs", title: "Step 3 — Set the exposure",
       text: "Turn on the lead sources that apply, then enter the concentrations and daily intake amounts. Use the “+ age” button to add values at more ages." },
-    { sel: '[data-tour="advanced"]', title: "Step 4 — Advanced settings (optional)",
-      text: "These sections are pre-filled with standard values. Open them only if you need to change growth, physiology, or lung settings." },
-    { sel: "#run-btn", title: "Step 5 — Run the model",
+    { sel: '.tab[data-view="advanced"]', tab: "inputs", title: "Step 4 — Advanced options (optional)",
+      text: "Growth, physiology, and lung settings live on this tab. They’re pre-filled with standard values — open it only if you need to change them." },
+    { sel: "#run-btn", tab: "inputs", title: "Step 5 — Run the model",
       text: "When your inputs are ready, click “Run model.” It takes a few seconds (longer for very long simulations)." },
-    { sel: ".results-col", title: "Step 6 — Read your results",
-      text: "Peak, average, and final blood-lead levels appear here with a chart. Tick series on the left to add more lines, and hover the chart to read exact values." }
+    { sel: '.tab[data-view="results"]', tab: "inputs", title: "Step 6 — See your results",
+      text: "When the run finishes, the Results tab opens automatically with a chart and summary statistics. Click a statistic to mark it on the chart, and hover the chart to read exact values." }
   ];
 
-  const SEEN_KEY = "aalm_tour_seen_v2";
+  const SEEN_KEY = "aalm_tour_seen_v3";
   let idx = 0;
   let overlay, spot, bubble, arrow, active = false;
 
@@ -112,6 +112,7 @@
     bubble._back.style.visibility = idx === 0 ? "hidden" : "visible";
     bubble._next.textContent = idx >= STEPS.length - 1 ? "Done" : "Next";
 
+    if (step.tab && window.AALM_showView) window.AALM_showView(step.tab);
     const target = step.sel ? document.querySelector(step.sel) : null;
     if (target && target.scrollIntoView) target.scrollIntoView({ block: "center", inline: "nearest" });
     requestAnimationFrame(() => requestAnimationFrame(place));

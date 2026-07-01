@@ -374,11 +374,13 @@
       if (!data.ok) {
         setStatus("Run did not complete: " + (data.message || "unknown error"), "error");
         renderError(data);
+        showView("results");
         return;
       }
       lastResult = data;
       setStatus(`Run “${data.name}” complete.`, "ok");
       renderResults(data);
+      showView("results");
     } catch (e) {
       setStatus("Could not reach the model server. Is it running? " + e.message, "error");
     } finally {
@@ -401,18 +403,37 @@
   }
 
   let selectedSeries = new Set(["Cblood"]);
+  let activeStats = new Set();
   function renderResults(data) {
     const host = $("#results"); host.innerHTML = "";
 
-    // summary cards
+    host.appendChild(ce("h2", "results-title", `Results — “${data.name}”`));
+
+    // interactive summary cards (clickable ones mark themselves on the chart)
     const sm = data.summary;
     const cards = ce("div", "summary");
-    const card = (label, val, unit) => { const c = ce("div", "stat"); c.appendChild(ce("div", "stat-val", val + (unit ? " " + unit : ""))); c.appendChild(ce("div", "stat-lab", label)); return c; };
-    cards.appendChild(card("Peak blood lead", sm.peakBLL, "µg/dL"));
-    cards.appendChild(card("Age at peak", sm.peakAgeYr, "yr"));
-    cards.appendChild(card("Mean blood lead", sm.meanBLL, "µg/dL"));
-    cards.appendChild(card("Final blood lead", sm.finalBLL, "µg/dL"));
+    const statCard = (key, label, val, unit, hint) => {
+      const c = ce("div", "stat" + (key ? " clickable" : "") + (key && activeStats.has(key) ? " active" : ""));
+      c.appendChild(ce("div", "stat-val", val + (unit ? " " + unit : "")));
+      c.appendChild(ce("div", "stat-lab", label));
+      if (key) {
+        c.title = hint;
+        c.appendChild(ce("div", "stat-mark", activeStats.has(key) ? "shown on chart ✓" : "click to mark"));
+        c.addEventListener("click", () => {
+          if (activeStats.has(key)) activeStats.delete(key); else activeStats.add(key);
+          renderResults(data);   // re-render to refresh card states + chart
+        });
+      }
+      return c;
+    };
+    cards.appendChild(statCard("peak", "Peak blood lead", sm.peakBLL, "µg/dL", "Mark the peak point on the chart"));
+    cards.appendChild(statCard(null, "Age at peak", sm.peakAgeYr, "yr"));
+    cards.appendChild(statCard("mean", "Mean blood lead", sm.meanBLL, "µg/dL", "Draw the average as a line"));
+    cards.appendChild(statCard("final", "Final blood lead", sm.finalBLL, "µg/dL", "Mark the final value"));
     host.appendChild(cards);
+
+    host.appendChild(ce("p", "stat-hint",
+      "Tip: click a blood-lead statistic above to mark it on the chart. Hover the chart to read the exact value at any age."));
 
     if (data.runInfo && /Allowable|allowable|Solved|solve|target/i.test(data.runInfo)) {
       const ri = ce("details", "runinfo");
@@ -460,7 +481,12 @@
       values: data.series[k],
       color: window.AALM_PALETTE[i % window.AALM_PALETTE.length]
     }));
-    renderChart($("#chart"), { x: data.xYears, series, xLabel: "Age (years)", yLabel });
+    const sm = data.summary;
+    const ann = { hlines: [], points: [] };
+    if (activeStats.has("mean")) ann.hlines.push({ y: sm.meanBLL, color: "#8250df", label: "mean " + sm.meanBLL });
+    if (activeStats.has("peak")) ann.points.push({ x: sm.peakAgeYr, y: sm.peakBLL, color: "#cf222e", label: "peak " + sm.peakBLL });
+    if (activeStats.has("final")) ann.points.push({ x: sm.finalAgeYr, y: sm.finalBLL, color: "#1a7f37", label: "final " + sm.finalBLL });
+    renderChart($("#chart"), { x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann });
   }
 
   function downloadCsv(data) {
@@ -487,27 +513,48 @@
     cfg = clone(DEFAULTS);
     cfg.growth = clone(DEFAULTS.growthBySex[String(DEFAULTS.growth.sex)] || DEFAULTS.growth);
 
-    const form = $("#form");
+    // --- Tab 1: Simulation inputs ---
+    const vInputs = $("#view-inputs");
     mediaHost = ce("div");
-    renderSimulation(form);
-    renderMedia(form);
-    renderIter(form);
+    renderSimulation(vInputs);
+    renderMedia(vInputs);
+    renderIter(vInputs);
 
-    const growthSec = section("Growth parameters", { advanced: true, collapsed: true });
-    growthSec.dataset.tour = "advanced";
+    // --- Tab 2: Advanced options (growth / physiology / lung) ---
+    const vAdv = $("#view-advanced");
+    const note = ce("p", "adv-note");
+    note.innerHTML = "These parameters are pre-filled with the standard AALM values. " +
+      "You only need this tab if you want to change the growth curve, physiology, or lung settings — " +
+      "most simulations use the defaults.";
+    vAdv.appendChild(note);
+
+    const growthSec = section("Growth parameters", { advanced: true, collapsed: false });
     growthHost = ce("div"); growthSec._body.appendChild(growthHost); renderGrowth(growthHost);
-    form.appendChild(growthSec);
+    vAdv.appendChild(growthSec);
+    renderPhysConst(vAdv);
+    renderPhysTimeDep(vAdv);
+    renderLung(vAdv);
 
-    renderPhysConst(form);
-    renderPhysTimeDep(form);
-    renderLung(form);
+    // tab navigation
+    document.querySelectorAll(".tab").forEach(t =>
+      t.addEventListener("click", () => showView(t.dataset.view)));
 
     $("#run-btn").addEventListener("click", runModel);
     const tb = $("#tour-btn");
     if (tb) tb.addEventListener("click", () => window.AALM_startTour(true));
-    setStatus("Ready. Adjust inputs and press “Run model”.", "");
+    setStatus("Ready. Set your inputs, then press “Run model”.", "");
     if (window.AALM_maybeAutoTour) window.AALM_maybeAutoTour();
   }
+
+  function showView(name) {
+    ["inputs", "advanced", "results"].forEach(v => {
+      const el = document.getElementById("view-" + v);
+      if (el) el.classList.toggle("hidden", v !== name);
+    });
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+    window.scrollTo(0, 0);
+  }
+  window.AALM_showView = showView;
 
   document.addEventListener("DOMContentLoaded", init);
 })();

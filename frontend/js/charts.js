@@ -58,6 +58,9 @@
     let xmin = Math.min(...x), xmax = Math.max(...x);
     let ymin = Infinity, ymax = -Infinity;
     for (const s of series) for (const v of s.values) { if (v < ymin) ymin = v; if (v > ymax) ymax = v; }
+    const ann = opts.annotations || {};
+    (ann.hlines || []).forEach(h => { if (h.y < ymin) ymin = h.y; if (h.y > ymax) ymax = h.y; });
+    (ann.points || []).forEach(p => { if (p.y < ymin) ymin = p.y; if (p.y > ymax) ymax = p.y; });
     if (!isFinite(ymin)) { ymin = 0; ymax = 1; }
     if (ymin === ymax) { ymax = ymin + 1; }
     if (ymin > 0) ymin = 0;                       // anchor at zero for readability
@@ -93,6 +96,21 @@
         d += (k === 0 ? "M" : "L") + sx(x[k]).toFixed(1) + " " + sy(s.values[k]).toFixed(1) + " ";
       }
       el("path", { d, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+    });
+
+    // annotations (from interactive summary statistics)
+    (ann.hlines || []).forEach(h => {
+      const yy = sy(h.y);
+      el("line", { x1: m.l, y1: yy, x2: m.l + iw, y2: yy, stroke: h.color, "stroke-width": 1.5, "stroke-dasharray": "6 4" }, svg);
+      const t = el("text", { x: m.l + iw - 4, y: yy - 5, "text-anchor": "end", class: "annot", fill: h.color }, svg);
+      t.textContent = h.label;
+    });
+    (ann.points || []).forEach(p => {
+      const px = sx(p.x), py = sy(p.y);
+      el("line", { x1: px, y1: py, x2: px, y2: m.t + ih, stroke: p.color, "stroke-width": 1, "stroke-dasharray": "4 3" }, svg);
+      el("circle", { cx: px, cy: py, r: 4.5, fill: p.color, stroke: "#fff", "stroke-width": 1.5 }, svg);
+      const t = el("text", { x: Math.min(px + 6, W - m.r - 60), y: py - 7, class: "annot", fill: p.color }, svg);
+      t.textContent = p.label;
     });
 
     // hover crosshair + tooltip

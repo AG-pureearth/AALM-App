@@ -4,37 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AALM — All Ages Lead Model</title>
-  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <link rel="stylesheet" href="css/styles.css?v=3" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>All Ages Lead Model</h1>
-    <span class="sub">browser front-end (v3.1 engine)</span>
-    <span class="spacer"></span>
-    <button id="tour-btn" title="Replay the step-by-step guide">❓ Guide</button>
-    <button id="run-btn">Run model</button>
-  </header>
+  <div class="appbar">
+    <header class="topbar">
+      <h1>All Ages Lead Model</h1>
+      <span class="sub">browser front-end (v3.1 engine)</span>
+      <span class="spacer"></span>
+      <button id="tour-btn" title="Replay the step-by-step guide">❓ Guide</button>
+      <button id="run-btn">Run model</button>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="inputs">Simulation inputs</button>
+      <button class="tab" data-view="advanced">Advanced options</button>
+      <button class="tab" data-view="results" id="tab-results">Results</button>
+    </nav>
+  </div>
 
   <div id="status" class="status">Loading…</div>
 
   <main>
-    <div class="form-col">
-      <div class="col-title">Inputs</div>
-      <div id="form"><!-- form sections injected here --></div>
-    </div>
-    <div class="results-col">
-      <div class="col-title">Results</div>
+    <section class="view" id="view-inputs"><!-- simulation + exposure --></section>
+    <section class="view hidden" id="view-advanced"><!-- growth / physiology / lung --></section>
+    <section class="view hidden" id="view-results">
       <div id="results">
-        <div class="placeholder">Set your inputs on the left and press <b>Run model</b> to see blood-lead and tissue results here.</div>
+        <div class="placeholder">No results yet. Set your inputs, press <b>Run model</b>, and this page opens automatically with charts and summary statistics.</div>
       </div>
-    </div>
+    </section>
   </main>
 
   <!-- config base (leave empty to use same origin; set when frontend is hosted separately) -->
   <script>window.AALM_API_BASE = "";</script>
-  <script src="js/schema.js?v=2"></script>
-  <script src="js/charts.js?v=2"></script>
-  <script src="js/tour.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/schema.js?v=3"></script>
+  <script src="js/charts.js?v=3"></script>
+  <script src="js/tour.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>

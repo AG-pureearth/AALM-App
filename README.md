@@ -5,9 +5,12 @@ two Excel workbooks with a web app: enter parameters in the browser, run the mod
 and view blood-lead and tissue-concentration results — all backed by the original
 `AALM_64.exe` engine.
 
-- **Inputs** mirror `AALM_Inputs_v3-1.xlsm` (simulation, exposure media, growth,
-  physiology, lung, and the allowable-concentration solver).
-- **Results** mirror `AALM_ExploreData_v3-1.xlsm` (summary statistics + interactive
+- The UI is organized into three tabs: **Simulation inputs** (simulation settings,
+  exposure media, and the allowable-concentration solver), **Advanced options**
+  (growth, physiology, and lung parameters — opt-in), and **Results**.
+- **Inputs** mirror `AALM_Inputs_v3-1.xlsm`.
+- **Results** mirror `AALM_ExploreData_v3-1.xlsm` (a dedicated results page with
+  interactive summary statistics — click a stat to annotate the chart — and
   time-series charts of blood lead and other compartments).
 - There is **no “import a parameter file” function** — inputs are entered directly in
   the UI, by design.
