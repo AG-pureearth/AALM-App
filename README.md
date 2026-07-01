@@ -25,12 +25,75 @@ and can be deployed to the web later (see *Deployment*).
 
 ## Run it locally (Windows)
 
-1. Install **Python 3** from <https://www.python.org/downloads/> — during setup,
-   tick **“Add Python to PATH.”** (One-time.)
-2. Double-click **`Start AALM App.bat`**.
-   - On first run it creates a private virtual environment and installs FastAPI/uvicorn.
-   - It then starts the server and opens <http://localhost:8000/> in your browser.
-3. Keep the console window open while using the app; close it to stop the server.
+You need three pieces:
+
+1. **This app** — from this GitHub repository.
+2. **The AALM v3.1 model engine** (`AALM_64.exe`) — downloaded separately from EPA.
+   It is **not** included in this repository; it is EPA-distributed software you
+   download once.
+3. **Python 3** — free, one-time install.
+
+### Step 1 — Get the app from GitHub
+
+Choose one:
+
+- **With Git installed** — open a terminal in a writable folder under your user
+  directory (for example `C:\Users\<you>\`) and run:
+
+  ```bash
+  git clone https://github.com/<owner>/<repo>.git
+  ```
+
+- **Without Git** — on the repository page click **Code ▸ Download ZIP**, then
+  right-click the downloaded file → **Extract All**.
+
+Put the resulting folder somewhere **writable under `C:\Users\<you>\`**. The model will
+not run correctly from OneDrive, a synced Documents folder, or a network drive. Below,
+the folder that contains `Start AALM App.bat`, `backend/`, and `frontend/` is called the
+**app folder**.
+
+### Step 2 — Download the AALM v3.1 model engine (`AALM_64.exe`)
+
+1. Download the official **All Ages Lead Model (AALM) version 3.1** software from EPA's
+   AALM web page (search the web for *“EPA All Ages Lead Model”*, or start at
+   <https://www.epa.gov/lead/all-ages-lead-model-aalm>).
+2. Unzip it and find **`AALM_64.exe`** — the 64-bit Windows engine. (`AALM_32.exe`
+   also works if you have it.)
+3. Copy `AALM_64.exe` into the folder that **contains** your app folder — i.e. one level
+   **above** it. The app looks for the engine right next to the app folder:
+
+   ```
+   C:\Users\<you>\
+   ├─ AALM_64.exe          ← the engine you downloaded (put it HERE)
+   └─ <app folder>\        ← this repository
+       ├─ backend\
+       ├─ frontend\
+       └─ Start AALM App.bat
+   ```
+
+   **Alternative (don't move the file):** point the app at wherever the engine already
+   lives by setting an environment variable once, then reopening the app:
+
+   ```bat
+   setx AALM_EXE "C:\full\path\to\AALM_64.exe"
+   ```
+
+### Step 3 — Install Python 3
+
+Install **Python 3** from <https://www.python.org/downloads/>. On the first installer
+screen, tick **“Add python.exe to PATH.”** (One-time.)
+
+### Step 4 — Run it
+
+Double-click **`Start AALM App.bat`** in the app folder.
+
+- On first run it creates a private virtual environment and installs FastAPI/uvicorn.
+- It then starts the server and opens <http://localhost:8000/> in your browser.
+- Keep the black console window open while using the app; close it to stop the server.
+
+If the app reports **“Model executable not found,”** the engine isn't where the app
+expects — recheck Step 2 (place `AALM_64.exe` one level above the app folder, or set
+`AALM_EXE`).
 
 ### Manual start (any OS, for developers)
 
@@ -45,8 +108,8 @@ python -m uvicorn app:app --reload --port 8000
 
 Open <http://localhost:8000/>. Interactive API docs are at `/docs`.
 
-The backend finds the model at `..\AALM_64.exe` by default; override with the
-`AALM_EXE` environment variable.
+The backend finds the engine in the folder above the app folder by default; override
+with the `AALM_EXE` environment variable (see Step 2).
 
 ---
 
