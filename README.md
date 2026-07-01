@@ -60,8 +60,8 @@ The folder you extracted — the one containing `Start AALM App.bat`, `backend/`
 ### Step 2 — Download the AALM v3.1 model engine (`AALM_64.exe`)
 
 1. Download the official **All Ages Lead Model (AALM) version 3.1** software from EPA's
-   AALM web page (search the web for *“EPA All Ages Lead Model”*, or start at
-   <https://www.epa.gov/lead/all-ages-lead-model-aalm>).
+   AALM web page:
+   <https://www.epa.gov/land-research/all-ages-lead-model-aalm>
 2. Unzip it and find **`AALM_64.exe`** — the 64-bit Windows engine. (`AALM_32.exe`
    also works if you have it.)
 3. Copy `AALM_64.exe` into the folder that **contains** your app folder — i.e. one level
