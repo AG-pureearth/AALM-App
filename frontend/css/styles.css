@@ -105,10 +105,10 @@ svg.chart text.annot { font-size: 11px; font-weight: 600; }
 /* interactive "estimate at age" panel */
 .estimator { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin: 0 0 16px; box-shadow: var(--shadow); }
 .estimator h3 { margin: 0 0 10px; font-size: 1rem; color: #0b3d63; }
-.est-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.est-slider { flex: 1; min-width: 220px; accent-color: #0b3d63; }
-.est-numwrap { white-space: nowrap; }
-.est-num { width: 88px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: .9rem; }
+.est-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.est-label { font-size: .9rem; color: #424a53; font-weight: 500; }
+.est-num { width: 96px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: .95rem; }
+.est-num:focus { outline: 2px solid #b6d3f5; border-color: var(--accent); }
 .est-readout { margin-top: 14px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .est-big { font-size: 2rem; font-weight: 800; color: #0b3d63; line-height: 1; }
 .est-unit { font-size: 1rem; font-weight: 600; color: var(--muted); }

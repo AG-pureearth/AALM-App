@@ -447,15 +447,11 @@
     const est = ce("div", "estimator");
     est.appendChild(ce("h3", null, "Estimate blood lead at a chosen age"));
     const controls = ce("div", "est-controls");
-    const slider = ce("input", "est-slider");
-    slider.type = "range"; slider.min = ageMin; slider.max = ageMax;
-    slider.step = Math.max(0.01, Math.round((ageMax - ageMin) / 500 * 100) / 100);
-    slider.value = markerAge;
-    const numWrap = ce("span", "est-numwrap");
+    controls.appendChild(ce("label", "est-label", "Age (years):"));
     const num = ce("input", "est-num");
     num.type = "number"; num.min = ageMin; num.max = ageMax; num.step = "any"; num.value = round2(markerAge);
-    numWrap.appendChild(num); numWrap.appendChild(ce("span", "muted", " years"));
-    controls.appendChild(slider); controls.appendChild(numWrap);
+    controls.appendChild(num);
+    controls.appendChild(ce("span", "muted", `allowed range: ${round2(ageMin)} – ${round2(ageMax)}`));
     est.appendChild(controls);
 
     const readout = ce("div", "est-readout");
@@ -491,8 +487,8 @@
       }
       drawChart(data);
     }
-    slider.addEventListener("input", () => { num.value = round2(+slider.value); refresh(); });
-    num.addEventListener("input", () => { if (num.value !== "") { slider.value = clamp(parseFloat(num.value), ageMin, ageMax); refresh(); } });
+    num.addEventListener("input", () => { if (num.value !== "") refresh(); });
+    num.addEventListener("change", () => { num.value = round2(markerAge); refresh(); });
 
     if (data.runInfo && /Allowable|allowable|Solved|solve|target/i.test(data.runInfo)) {
       const ri = ce("details", "runinfo");
