@@ -146,5 +146,6 @@
   }
 
   window.AALM_startTour = start;
-  window.AALM_maybeAutoTour = function () { setTimeout(() => start(false), 450); };
+  // Pop the guide up automatically every time the page loads (force = true).
+  window.AALM_maybeAutoTour = function () { setTimeout(() => start(true), 450); };
 })();

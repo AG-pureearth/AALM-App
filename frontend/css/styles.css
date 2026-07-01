@@ -195,5 +195,5 @@ header.topbar button#tour-btn:hover { background: rgba(255,255,255,.1); }
 .tour-back { background: #fff; border: 1px solid var(--line); color: #424a53; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85rem; }
 .tour-next { background: #2da44e; border: 0; color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: .85rem; font-weight: 600; }
 .tour-next:hover { background: #2c974b; }
-.tour-skip { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--muted); font-size: .78rem; cursor: pointer; text-decoration: underline; }
-.tour-skip:hover { color: var(--ink); }
+.tour-skip { position: absolute; top: 8px; right: 10px; background: #f6f8fa; border: 1px solid var(--line); color: #57606a; font-size: .78rem; font-weight: 600; padding: 3px 10px; border-radius: 6px; cursor: pointer; }
+.tour-skip:hover { background: #eaeef2; color: var(--ink); }
