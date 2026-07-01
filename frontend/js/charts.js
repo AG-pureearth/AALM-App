@@ -37,6 +37,19 @@
     return (Math.round(v * 1000) / 1000).toString();
   }
 
+  // linear interpolation of ys (aligned to xs) at position x
+  function interpSeries(xs, ys, x) {
+    const n = xs.length;
+    if (!n) return 0;
+    if (x <= xs[0]) return ys[0];
+    if (x >= xs[n - 1]) return ys[n - 1];
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (xs[mid] <= x) lo = mid; else hi = mid; }
+    const t = (x - xs[lo]) / (xs[hi] - xs[lo] || 1);
+    return ys[lo] + t * (ys[hi] - ys[lo]);
+  }
+  window.AALM_interp = interpSeries;
+
   window.renderChart = function (container, opts) {
     container.innerHTML = "";
     const x = opts.x || [];
@@ -112,6 +125,18 @@
       const t = el("text", { x: Math.min(px + 6, W - m.r - 60), y: py - 7, class: "annot", fill: p.color }, svg);
       t.textContent = p.label;
     });
+
+    // user-set age marker (from the "estimate at age" control)
+    if (opts.marker && opts.marker.x != null && opts.marker.x >= xmin && opts.marker.x <= xmax) {
+      const mx2 = opts.marker.x, px = sx(mx2);
+      el("line", { x1: px, y1: m.t, x2: px, y2: m.t + ih, stroke: "#0b3d63", "stroke-width": 2 }, svg);
+      series.forEach((s, i) => {
+        const yv = interpSeries(x, s.values, mx2);
+        el("circle", { cx: px, cy: sy(yv), r: 4.5, fill: s.color || PALETTE[i % PALETTE.length], stroke: "#0b3d63", "stroke-width": 1.5 }, svg);
+      });
+      const lab = el("text", { x: Math.min(px + 6, W - m.r - 48), y: m.t + 12, class: "annot", fill: "#0b3d63" }, svg);
+      lab.textContent = "age " + fmt(mx2);
+    }
 
     // hover crosshair + tooltip
     const hoverLine = el("line", { y1: m.t, y2: m.t + ih, stroke: "#9aa0a6", "stroke-dasharray": "3 3", visibility: "hidden" }, svg);

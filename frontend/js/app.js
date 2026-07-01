@@ -9,6 +9,9 @@
   const clone = (o) => (window.structuredClone ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
   const $ = (sel, root = document) => root.querySelector(sel);
   const ce = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const round2 = (x) => Math.round(x * 100) / 100;
+  const round3 = (x) => Math.round(x * 1000) / 1000;
+  const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
   let DEFAULTS = null;   // canonical defaults from /api/defaults (incl. growthBySex)
   let cfg = null;        // the working run configuration
@@ -404,6 +407,7 @@
 
   let selectedSeries = new Set(["Cblood"]);
   let activeStats = new Set();
+  let markerAge = null;
   function renderResults(data) {
     const host = $("#results"); host.innerHTML = "";
 
@@ -435,6 +439,61 @@
     host.appendChild(ce("p", "stat-hint",
       "Tip: click a blood-lead statistic above to mark it on the chart. Hover the chart to read the exact value at any age."));
 
+    // --- interactive "estimate blood lead at a chosen age" panel ---
+    const xs = data.xYears;
+    const ageMin = xs[0], ageMax = xs[xs.length - 1];
+    if (markerAge == null || markerAge < ageMin || markerAge > ageMax) markerAge = data.summary.peakAgeYr;
+
+    const est = ce("div", "estimator");
+    est.appendChild(ce("h3", null, "Estimate blood lead at a chosen age"));
+    const controls = ce("div", "est-controls");
+    const slider = ce("input", "est-slider");
+    slider.type = "range"; slider.min = ageMin; slider.max = ageMax;
+    slider.step = Math.max(0.01, Math.round((ageMax - ageMin) / 500 * 100) / 100);
+    slider.value = markerAge;
+    const numWrap = ce("span", "est-numwrap");
+    const num = ce("input", "est-num");
+    num.type = "number"; num.min = ageMin; num.max = ageMax; num.step = "any"; num.value = round2(markerAge);
+    numWrap.appendChild(num); numWrap.appendChild(ce("span", "muted", " years"));
+    controls.appendChild(slider); controls.appendChild(numWrap);
+    est.appendChild(controls);
+
+    const readout = ce("div", "est-readout");
+    const big = ce("div", "est-big");
+    const bllVal = ce("span", "est-bll", "—");
+    big.appendChild(bllVal); big.appendChild(ce("span", "est-unit", " µg/dL"));
+    const sub = ce("div", "est-sub");
+    readout.appendChild(big); readout.appendChild(sub);
+    est.appendChild(readout);
+
+    const estTable = ce("div", "est-table");
+    est.appendChild(estTable);
+    host.appendChild(est);
+
+    function refresh() {
+      let a = parseFloat(num.value);
+      if (isNaN(a)) a = markerAge;
+      a = clamp(a, ageMin, ageMax);
+      markerAge = a;
+      bllVal.textContent = round3(window.AALM_interp(xs, data.series.Cblood, a));
+      sub.textContent = `estimated blood lead at age ${round2(a)} yr`;
+      estTable.innerHTML = "";
+      const keys = [...selectedSeries].filter(k => data.series[k] && k !== "Cblood");
+      if (keys.length) {
+        estTable.appendChild(ce("div", "est-th", "Other plotted series at this age"));
+        keys.forEach(k => {
+          const meta = S.outputs.meta[k] || { label: k, unit: "" };
+          const row = ce("div", "est-row");
+          row.appendChild(ce("span", "est-k", meta.label + (meta.unit ? ` (${meta.unit})` : "")));
+          row.appendChild(ce("span", "est-v", round3(window.AALM_interp(xs, data.series[k], a))));
+          estTable.appendChild(row);
+        });
+      }
+      drawChart(data);
+    }
+    slider.addEventListener("input", () => { num.value = round2(+slider.value); refresh(); });
+    num.addEventListener("input", () => { if (num.value !== "") { slider.value = clamp(parseFloat(num.value), ageMin, ageMax); refresh(); } });
+
     if (data.runInfo && /Allowable|allowable|Solved|solve|target/i.test(data.runInfo)) {
       const ri = ce("details", "runinfo");
       ri.appendChild(ce("summary", null, "Solver / run info"));
@@ -452,10 +511,9 @@
       picker.appendChild(ce("div", "pick-group", g.name));
       present.forEach(k => {
         const meta = S.outputs.meta[k] || { label: k, unit: "" };
-        const id = "pick_" + k;
         const row = ce("label", "pick");
-        const cb = ce("input"); cb.type = "checkbox"; cb.id = id; cb.checked = selectedSeries.has(k);
-        cb.addEventListener("change", () => { if (cb.checked) selectedSeries.add(k); else selectedSeries.delete(k); drawChart(data); });
+        const cb = ce("input"); cb.type = "checkbox"; cb.checked = selectedSeries.has(k);
+        cb.addEventListener("change", () => { if (cb.checked) selectedSeries.add(k); else selectedSeries.delete(k); refresh(); });
         row.appendChild(cb);
         row.appendChild(ce("span", null, " " + meta.label + (meta.unit ? ` (${meta.unit})` : "")));
         picker.appendChild(row);
@@ -469,7 +527,8 @@
 
     layout.appendChild(picker); layout.appendChild(chartWrap);
     host.appendChild(layout);
-    drawChart(data);
+
+    refresh();   // initial readout + chart (chart host now exists)
   }
 
   function drawChart(data) {
@@ -486,7 +545,10 @@
     if (activeStats.has("mean")) ann.hlines.push({ y: sm.meanBLL, color: "#8250df", label: "mean " + sm.meanBLL });
     if (activeStats.has("peak")) ann.points.push({ x: sm.peakAgeYr, y: sm.peakBLL, color: "#cf222e", label: "peak " + sm.peakBLL });
     if (activeStats.has("final")) ann.points.push({ x: sm.finalAgeYr, y: sm.finalBLL, color: "#1a7f37", label: "final " + sm.finalBLL });
-    renderChart($("#chart"), { x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann });
+    renderChart($("#chart"), {
+      x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann,
+      marker: (markerAge != null ? { x: markerAge } : null)
+    });
   }
 
   function downloadCsv(data) {

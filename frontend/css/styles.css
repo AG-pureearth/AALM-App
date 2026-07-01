@@ -102,6 +102,23 @@ main { padding: 18px; max-width: 1180px; margin: 0 auto; }
 .stat-hint { font-size: .82rem; color: var(--muted); margin: 0 0 16px; }
 svg.chart text.annot { font-size: 11px; font-weight: 600; }
 
+/* interactive "estimate at age" panel */
+.estimator { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin: 0 0 16px; box-shadow: var(--shadow); }
+.estimator h3 { margin: 0 0 10px; font-size: 1rem; color: #0b3d63; }
+.est-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.est-slider { flex: 1; min-width: 220px; accent-color: #0b3d63; }
+.est-numwrap { white-space: nowrap; }
+.est-num { width: 88px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: .9rem; }
+.est-readout { margin-top: 14px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.est-big { font-size: 2rem; font-weight: 800; color: #0b3d63; line-height: 1; }
+.est-unit { font-size: 1rem; font-weight: 600; color: var(--muted); }
+.est-sub { color: var(--muted); font-size: .85rem; }
+.est-table { margin-top: 12px; }
+.est-th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.est-row { display: flex; justify-content: space-between; gap: 20px; max-width: 360px; padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: .88rem; }
+.est-k { color: #424a53; }
+.est-v { font-weight: 600; color: #0b3d63; }
+
 .results-layout { display: grid; grid-template-columns: 180px 1fr; gap: 14px; }
 @media (max-width: 720px) { .results-layout { grid-template-columns: 1fr; } }
 .series-picker { font-size: .85rem; max-height: 460px; overflow-y: auto; padding-right: 4px; }

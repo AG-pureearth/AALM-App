@@ -97,6 +97,10 @@ and **Results**.
    - The four boxes show the **highest, average, and final blood lead levels** and the
      age at the peak. **Click** the highest, average, or final box to mark that value
      right on the chart; click again to remove it.
+   - **Estimate the level at any age.** Use the **“Estimate blood lead at a chosen
+     age”** slider (or type an age in the box). The big number updates to show the
+     estimated blood lead at that age, and a line on the chart marks the spot. If you
+     have added other series, their values at that age are listed too.
    - The chart shows blood lead over the person’s life. Tick other boxes on the left to
      add more lines (kidney, liver, bone, etc.).
    - Move your mouse over the chart to read exact values at any age.
