@@ -94,16 +94,19 @@ and **Results**.
    seconds (longer for very long simulations). The **Results** tab opens automatically
    when it finishes.
 6. **Read the results** on the **Results** tab:
-   - The four boxes show the **highest, average, and final blood lead levels** and the
-     age at the peak. **Click** the highest, average, or final box to mark that value
-     right on the chart; click again to remove it.
-   - **Estimate the level at any age.** In the **“Estimate blood lead at a chosen
-     age”** box, type an age (in years). The big number updates to show the estimated
-     blood lead at that age, and a line on the chart marks the spot. If you have added
-     other series, their values at that age are listed too.
-   - The chart shows blood lead over the person’s life. Tick other boxes on the left to
-     add more lines (kidney, liver, bone, etc.).
-   - Move your mouse over the chart to read exact values at any age.
+   - The four boxes show the **highest, average, and final** value and the **age at the
+     peak** for the output parameter you are focused on (blood lead to start with).
+     **Click** the highest, average, or final box to mark that value on the chart;
+     click again to remove it.
+   - **Switch which parameter the statistics describe.** In the **Series** list, tick a
+     different output (kidney, liver, bone, etc.) or click its name — the boxes,
+     estimator, and chart markers all switch to that parameter (a ★ shows which one is
+     in focus). Click **Blood lead** again to switch back.
+   - **Estimate the value at any age.** In the **“Estimate … at a chosen age”** box,
+     type an age (in years). The big number shows the estimated value of the focused
+     parameter at that age, and a line on the chart marks the spot.
+   - The chart shows the plotted parameters over the person’s life. Move your mouse over
+     it to read exact values at any age.
    - Click **“Download plotted data (CSV)”** to save the numbers as a spreadsheet file.
 7. **Try another scenario.** Go back to the **Simulation inputs** tab, change anything,
    and click **Run model** again. (Give it a new **Simulation name** if you want to keep

@@ -408,13 +408,32 @@
   let selectedSeries = new Set(["Cblood"]);
   let activeStats = new Set();
   let markerAge = null;
+  let focusKey = "Cblood";   // the output parameter the statistics describe
+
+  function computeStats(xs, ys) {
+    let peak = -Infinity, peakAge = xs[0], sum = 0;
+    for (let i = 0; i < ys.length; i++) { sum += ys[i]; if (ys[i] > peak) { peak = ys[i]; peakAge = xs[i]; } }
+    return { peak, peakAge, mean: sum / ys.length, final: ys[ys.length - 1], finalAge: xs[xs.length - 1] };
+  }
+
   function renderResults(data) {
     const host = $("#results"); host.innerHTML = "";
+    const xs = data.xYears;
+
+    // resolve the focus parameter (what the statistics describe); keep it plotted
+    if (!focusKey || !data.series[focusKey]) focusKey = "Cblood";
+    selectedSeries.add(focusKey);
+    const fmeta = S.outputs.meta[focusKey] || { label: focusKey, unit: "" };
+    const funit = fmeta.unit || "";
+    const fst = computeStats(xs, data.series[focusKey]);
 
     host.appendChild(ce("h2", "results-title", `Results — “${data.name}”`));
+    const forLine = ce("div", "stats-for");
+    forLine.appendChild(ce("span", "muted", "Statistics for: "));
+    forLine.appendChild(ce("span", "stats-for-name", fmeta.label + (funit ? ` (${funit})` : "")));
+    host.appendChild(forLine);
 
     // interactive summary cards (clickable ones mark themselves on the chart)
-    const sm = data.summary;
     const cards = ce("div", "summary");
     const statCard = (key, label, val, unit, hint) => {
       const c = ce("div", "stat" + (key ? " clickable" : "") + (key && activeStats.has(key) ? " active" : ""));
@@ -430,22 +449,22 @@
       }
       return c;
     };
-    cards.appendChild(statCard("peak", "Peak blood lead", sm.peakBLL, "µg/dL", "Mark the peak point on the chart"));
-    cards.appendChild(statCard(null, "Age at peak", sm.peakAgeYr, "yr"));
-    cards.appendChild(statCard("mean", "Mean blood lead", sm.meanBLL, "µg/dL", "Draw the average as a line"));
-    cards.appendChild(statCard("final", "Final blood lead", sm.finalBLL, "µg/dL", "Mark the final value"));
+    cards.appendChild(statCard("peak", `Peak ${fmeta.label}`, round3(fst.peak), funit, "Mark the peak on the chart"));
+    cards.appendChild(statCard(null, "Age at peak", round2(fst.peakAge), "yr"));
+    cards.appendChild(statCard("mean", `Mean ${fmeta.label}`, round3(fst.mean), funit, "Draw the average as a line"));
+    cards.appendChild(statCard("final", `Final ${fmeta.label}`, round3(fst.final), funit, "Mark the final value"));
     host.appendChild(cards);
 
     host.appendChild(ce("p", "stat-hint",
-      "Tip: click a blood-lead statistic above to mark it on the chart. Hover the chart to read the exact value at any age."));
+      "Tip: check a parameter in the Series list (or click its name) to show its statistics here. " +
+      "Click a statistic to mark it on the chart; hover the chart to read values."));
 
-    // --- interactive "estimate blood lead at a chosen age" panel ---
-    const xs = data.xYears;
+    // --- interactive "estimate at a chosen age" panel (uses the focus parameter) ---
     const ageMin = xs[0], ageMax = xs[xs.length - 1];
     if (markerAge == null || markerAge < ageMin || markerAge > ageMax) markerAge = data.summary.peakAgeYr;
 
     const est = ce("div", "estimator");
-    est.appendChild(ce("h3", null, "Estimate blood lead at a chosen age"));
+    est.appendChild(ce("h3", null, `Estimate ${fmeta.label} at a chosen age`));
     const controls = ce("div", "est-controls");
     controls.appendChild(ce("label", "est-label", "Age (years):"));
     const num = ce("input", "est-num");
@@ -457,7 +476,7 @@
     const readout = ce("div", "est-readout");
     const big = ce("div", "est-big");
     const bllVal = ce("span", "est-bll", "—");
-    big.appendChild(bllVal); big.appendChild(ce("span", "est-unit", " µg/dL"));
+    big.appendChild(bllVal); big.appendChild(ce("span", "est-unit", funit ? " " + funit : ""));
     const sub = ce("div", "est-sub");
     readout.appendChild(big); readout.appendChild(sub);
     est.appendChild(readout);
@@ -471,10 +490,10 @@
       if (isNaN(a)) a = markerAge;
       a = clamp(a, ageMin, ageMax);
       markerAge = a;
-      bllVal.textContent = round3(window.AALM_interp(xs, data.series.Cblood, a));
-      sub.textContent = `estimated blood lead at age ${round2(a)} yr`;
+      bllVal.textContent = round3(window.AALM_interp(xs, data.series[focusKey], a));
+      sub.textContent = `estimated ${fmeta.label.toLowerCase()} at age ${round2(a)} yr`;
       estTable.innerHTML = "";
-      const keys = [...selectedSeries].filter(k => data.series[k] && k !== "Cblood");
+      const keys = [...selectedSeries].filter(k => data.series[k] && k !== focusKey);
       if (keys.length) {
         estTable.appendChild(ce("div", "est-th", "Other plotted series at this age"));
         keys.forEach(k => {
@@ -501,17 +520,24 @@
     const layout = ce("div", "results-layout");
     const picker = ce("div", "series-picker");
     picker.appendChild(ce("h3", null, "Series"));
+    picker.appendChild(ce("p", "picker-note", "Check a box to plot. Click a name to show its statistics above (★)."));
     S.outputs.groups.forEach(g => {
       const present = g.keys.filter(k => data.series[k]);
       if (!present.length) return;
       picker.appendChild(ce("div", "pick-group", g.name));
       present.forEach(k => {
         const meta = S.outputs.meta[k] || { label: k, unit: "" };
-        const row = ce("label", "pick");
+        const row = ce("div", "pick" + (k === focusKey ? " focus" : ""));
         const cb = ce("input"); cb.type = "checkbox"; cb.checked = selectedSeries.has(k);
-        cb.addEventListener("change", () => { if (cb.checked) selectedSeries.add(k); else selectedSeries.delete(k); refresh(); });
-        row.appendChild(cb);
-        row.appendChild(ce("span", null, " " + meta.label + (meta.unit ? ` (${meta.unit})` : "")));
+        cb.addEventListener("change", () => {
+          if (cb.checked) { selectedSeries.add(k); focusKey = k; }
+          else { selectedSeries.delete(k); if (focusKey === k) focusKey = [...selectedSeries][0] || "Cblood"; }
+          renderResults(data);
+        });
+        const name = ce("span", "pick-name", " " + meta.label + (meta.unit ? ` (${meta.unit})` : ""));
+        name.addEventListener("click", () => { selectedSeries.add(k); focusKey = k; renderResults(data); });
+        if (k === focusKey) name.appendChild(ce("span", "focus-badge", " ★"));
+        row.appendChild(cb); row.appendChild(name);
         picker.appendChild(row);
       });
     });
@@ -536,11 +562,12 @@
       values: data.series[k],
       color: window.AALM_PALETTE[i % window.AALM_PALETTE.length]
     }));
-    const sm = data.summary;
+    const fkey = (focusKey && data.series[focusKey]) ? focusKey : "Cblood";
+    const fst = computeStats(data.xYears, data.series[fkey]);
     const ann = { hlines: [], points: [] };
-    if (activeStats.has("mean")) ann.hlines.push({ y: sm.meanBLL, color: "#8250df", label: "mean " + sm.meanBLL });
-    if (activeStats.has("peak")) ann.points.push({ x: sm.peakAgeYr, y: sm.peakBLL, color: "#cf222e", label: "peak " + sm.peakBLL });
-    if (activeStats.has("final")) ann.points.push({ x: sm.finalAgeYr, y: sm.finalBLL, color: "#1a7f37", label: "final " + sm.finalBLL });
+    if (activeStats.has("mean")) ann.hlines.push({ y: round3(fst.mean), color: "#8250df", label: "mean " + round3(fst.mean) });
+    if (activeStats.has("peak")) ann.points.push({ x: fst.peakAge, y: fst.peak, color: "#cf222e", label: "peak " + round3(fst.peak) });
+    if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#1a7f37", label: "final " + round3(fst.final) });
     renderChart($("#chart"), {
       x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann,
       marker: (markerAge != null ? { x: markerAge } : null)
