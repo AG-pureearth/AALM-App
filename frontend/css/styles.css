@@ -67,19 +67,9 @@ main { padding: 18px; max-width: 1180px; margin: 0 auto; }
 .media-title { font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; }
 .media-body { padding: 10px 12px; }
 
-/* recommended-values callout box */
-.media-callout { background: #eef5ff; border: 1px solid #cfe0f5; border-left: 3px solid #0b3d63; border-radius: 6px; padding: 6px 12px; margin: 2px 0 12px; font-size: .82rem; color: #33517a; }
-.media-callout > summary { cursor: pointer; color: #0b3d63; list-style: none; padding: 2px 0; }
-.media-callout > summary::-webkit-details-marker { display: none; }
-.media-callout > summary::before { content: "▸ "; font-size: .8em; }
-.media-callout[open] > summary::before { content: "▾ "; }
-.callout-line { margin: 6px 0; line-height: 1.4; }
-.callout-key { font-weight: 600; color: #23405f; }
-.callout-note { margin: 6px 0 2px; color: #4a5b73; line-height: 1.45; }
-.callout-table { border-collapse: collapse; margin: 4px 0 6px; font-size: .8rem; }
-.callout-table th, .callout-table td { border: 1px solid #cfe0f5; padding: 3px 8px; text-align: center; white-space: nowrap; }
-.callout-table th { background: #dce8f8; font-weight: 600; color: #23405f; }
-.callout-table td { background: #fff; }
+/* informational note linking the technical guidance document */
+.media-doc-note { font-size: .85rem; color: #4a5b73; margin: 0 0 12px; line-height: 1.45; }
+.media-doc-note a { color: #0969da; }
 
 .subhead { font-size: .8rem; font-weight: 600; color: #424a53; margin: 10px 0 4px; }
 .subhead.inline { display: inline-flex; align-items: center; gap: 8px; margin-right: 8px; }

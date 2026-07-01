@@ -87,10 +87,10 @@ and **Results**.
 3. **Set the exposure.** Under **Exposure media**, turn on the sources that apply
    (Soil, Dust, Water, Air, Food, Other) and type in the lead **concentrations** and
    **intake** amounts. You can add more age columns with the **“+ age”** button.
-   - Not sure what numbers to use? Each source has a **“ⓘ Recommended values”** box
-     you can click open. It lists the EPA default concentration, intake rate by age,
-     and bioavailability (RBA) for that source (from the AALM Technical Support
-     Document, Appendix C).
+   - Not sure what numbers to use? At the top of **Exposure media** there is a link to
+     the **All Ages Lead Model Technical Guidance document** — recommended ingestion
+     rates are in its **Appendix C**. (To make that link open, place the PDF in
+     `frontend/docs/` — see the note in that folder.)
 4. **(Optional) Advanced options.** Growth, physiology, and lung settings live on the
    **Advanced options** tab. They are pre-filled with standard values — open that tab
    only if you need to change them. Most simulations use the defaults.

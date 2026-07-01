@@ -191,6 +191,15 @@
   function renderMedia(parent) {
     const sec = section("Exposure media");
     sec.dataset.tour = "media";
+    const note = ce("p", "media-doc-note");
+    note.appendChild(document.createTextNode("Recommended ingestion rates can be found in the "));
+    const link = ce("a", null, "All Ages Lead Model Technical Guidance document");
+    link.href = "docs/AALM-Technical-Support-Document.pdf";
+    link.target = "_blank";
+    link.rel = "noopener";
+    note.appendChild(link);
+    note.appendChild(document.createTextNode(" in Appendix C."));
+    sec._body.appendChild(note);
     sec._body.appendChild(mediaHost);
     parent.appendChild(sec);
     drawMedia();
@@ -218,7 +227,6 @@
 
       if (md.active) {
         const body = ce("div", "media-body");
-        body.appendChild(mediaCallout(key));
         if (md.mode === "conc") {
           // concentration table
           body.appendChild(ce("div", "subhead", `Concentration (${meta.concUnit})`));
@@ -245,45 +253,6 @@
       }
       mediaHost.appendChild(card);
     });
-  }
-  // Callout box listing EPA-recommended default values for a medium
-  // (from the AALM v3.0 Technical Support Document, Appendix C).
-  function mediaCallout(key) {
-    const rec = (S.media[key] || {}).rec;
-    const box = ce("details", "media-callout");
-    const sum = ce("summary");
-    sum.innerHTML = "<b>ⓘ Recommended values</b> — EPA defaults (Appendix C)";
-    box.appendChild(sum);
-    if (!rec) {
-      box.appendChild(ce("p", "callout-note", "No specific EPA recommendation for this medium."));
-      return box;
-    }
-    if (rec.conc) {
-      const p = ce("p", "callout-line");
-      p.appendChild(ce("span", "callout-key", "Concentration: "));
-      p.appendChild(ce("span", null, rec.conc));
-      box.appendChild(p);
-    }
-    if (rec.intake && rec.intake.length) {
-      box.appendChild(ce("div", "callout-key",
-        (rec.intakeLabel || "Intake") + (rec.intakeUnit ? ` (${rec.intakeUnit})` : "")));
-      const tbl = ce("table", "callout-table");
-      const trAge = ce("tr"), trVal = ce("tr");
-      rec.intake.forEach(([age, val]) => {
-        trAge.appendChild(ce("th", null, age));
-        trVal.appendChild(ce("td", null, val));
-      });
-      tbl.appendChild(trAge); tbl.appendChild(trVal);
-      box.appendChild(tbl);
-    }
-    if (rec.rba) {
-      const p = ce("p", "callout-line");
-      p.appendChild(ce("span", "callout-key", "Relative bioavailability (RBA): "));
-      p.appendChild(ce("span", null, rec.rba));
-      box.appendChild(p);
-    }
-    if (rec.note) box.appendChild(ce("p", "callout-note", rec.note));
-    return box;
   }
   function rbaRow(md) {
     const row = ce("div", "rba-row");
