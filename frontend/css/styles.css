@@ -23,6 +23,12 @@ header.topbar button#run-btn {
 }
 header.topbar button#run-btn:disabled { background: #94d3a2; cursor: default; }
 
+/* bottom "Run model" action bar on the inputs page */
+.run-bar { display: flex; justify-content: flex-end; margin: 18px 2px 6px; padding-top: 14px; border-top: 1px solid var(--line); }
+.run-btn-lg { background: #2da44e; color: #fff; border: 0; padding: 11px 26px; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+.run-btn-lg:hover { background: #2c974b; }
+.run-btn-lg:disabled { background: #94d3a2; cursor: default; }
+
 .status { padding: 8px 20px; font-size: .88rem; border-bottom: 1px solid var(--line); background: #fff; }
 .status.ok { color: var(--ok); } .status.error { color: var(--err); } .status.busy { color: var(--busy); }
 
@@ -106,6 +112,11 @@ main { padding: 18px; max-width: 1180px; margin: 0 auto; }
 .stat-val { font-size: 1.3rem; font-weight: 700; color: #0b3d63; }
 .stat-lab { font-size: .76rem; color: var(--muted); margin-top: 2px; }
 .stat-mark { font-size: .68rem; margin-top: 6px; color: var(--accent); text-transform: uppercase; letter-spacing: .03em; }
+.mean-toggle { display: inline-flex; margin-top: 6px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.mt-btn { border: 0; background: #fff; color: #57606a; font-size: .7rem; padding: 3px 8px; cursor: pointer; }
+.mt-btn + .mt-btn { border-left: 1px solid var(--line); }
+.mt-btn.on { background: #0b3d63; color: #fff; font-weight: 600; }
+.mt-btn:not(.on):hover { background: #eef2f6; }
 .stat-hint { font-size: .82rem; color: var(--muted); margin: 0 0 16px; }
 svg.chart text.annot { font-size: 11px; font-weight: 600; }
 

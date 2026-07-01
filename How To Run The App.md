@@ -94,14 +94,17 @@ and **Results**.
 4. **(Optional) Advanced options.** Growth, physiology, and lung settings live on the
    **Advanced options** tab. They are pre-filled with standard values — open that tab
    only if you need to change them. Most simulations use the defaults.
-5. **Run it.** Click the green **“Run model”** button at the top right. It takes a few
-   seconds (longer for very long simulations). The **Results** tab opens automatically
-   when it finishes.
+5. **Run it.** Click the green **“Run model”** button — it is at the **top right** and
+   also at the **bottom of the inputs page**, so you can run without scrolling back up.
+   It takes a few seconds (longer for very long simulations). The **Results** tab opens
+   automatically when it finishes.
 6. **Read the results** on the **Results** tab:
-   - The four boxes show the **highest, average, and final** value and the **age at the
-     peak** for the output parameter you are focused on (blood lead to start with).
-     **Click** the highest, average, or final box to mark that value on the chart;
-     click again to remove it.
+   - The boxes show the **maximum, minimum, average, and final** value, plus the **age
+     at the maximum** and **age at the minimum**, for the output parameter you are
+     focused on (blood lead to start with). **Click** the max, min, average, or final
+     box to mark that value on the chart; click again to remove it.
+   - **Average or geometric average.** On the average box, use the small **Mean /
+     Geo. mean** switch to show either the ordinary average or the geometric mean.
    - **Switch which parameter the statistics describe.** In the **Series** list, tick a
      different output (kidney, liver, bone, etc.) or click its name — the boxes,
      estimator, and chart markers all switch to that parameter (a ★ shows which one is

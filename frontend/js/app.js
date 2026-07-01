@@ -418,11 +418,25 @@
   let activeStats = new Set();
   let markerAge = null;
   let focusKey = "Cblood";   // the output parameter the statistics describe
+  let meanMode = "arith";    // "arith" (arithmetic) or "geo" (geometric) mean
 
   function computeStats(xs, ys) {
-    let peak = -Infinity, peakAge = xs[0], sum = 0;
-    for (let i = 0; i < ys.length; i++) { sum += ys[i]; if (ys[i] > peak) { peak = ys[i]; peakAge = xs[i]; } }
-    return { peak, peakAge, mean: sum / ys.length, final: ys[ys.length - 1], finalAge: xs[xs.length - 1] };
+    let max = -Infinity, maxAge = xs[0], min = Infinity, minAge = xs[0], sum = 0;
+    let logSum = 0, posN = 0;
+    for (let i = 0; i < ys.length; i++) {
+      const v = ys[i];
+      sum += v;
+      if (v > max) { max = v; maxAge = xs[i]; }
+      if (v < min) { min = v; minAge = xs[i]; }
+      if (v > 0) { logSum += Math.log(v); posN++; }   // geometric mean uses positive values only
+    }
+    const n = ys.length;
+    return {
+      max, maxAge, min, minAge,
+      mean: sum / n,
+      geomean: posN ? Math.exp(logSum / posN) : NaN,
+      final: ys[n - 1], finalAge: xs[n - 1]
+    };
   }
 
   function renderResults(data) {
@@ -458,9 +472,38 @@
       }
       return c;
     };
-    cards.appendChild(statCard("peak", `Peak ${fmeta.label}`, round3(fst.peak), funit, "Mark the peak on the chart"));
-    cards.appendChild(statCard(null, "Age at peak", round2(fst.peakAge), "yr"));
-    cards.appendChild(statCard("mean", `Mean ${fmeta.label}`, round3(fst.mean), funit, "Draw the average as a line"));
+
+    // Mean card with an arithmetic / geometric toggle
+    function meanCard() {
+      const geo = meanMode === "geo";
+      const val = geo ? fst.geomean : fst.mean;
+      const c = ce("div", "stat clickable" + (activeStats.has("mean") ? " active" : ""));
+      c.title = "Draw the average as a line on the chart";
+      c.appendChild(ce("div", "stat-val", (isFinite(val) ? round3(val) : "n/a") + (funit ? " " + funit : "")));
+      c.appendChild(ce("div", "stat-lab", (geo ? "Geometric mean " : "Mean ") + fmeta.label));
+      const tog = ce("div", "mean-toggle");
+      const mk = (mode, text) => {
+        const b = ce("button", "mt-btn" + (meanMode === mode ? " on" : ""), text);
+        b.type = "button";
+        b.addEventListener("click", ev => { ev.stopPropagation(); if (meanMode !== mode) { meanMode = mode; renderResults(data); } });
+        return b;
+      };
+      tog.appendChild(mk("arith", "Mean"));
+      tog.appendChild(mk("geo", "Geo. mean"));
+      c.appendChild(tog);
+      c.appendChild(ce("div", "stat-mark", activeStats.has("mean") ? "shown on chart ✓" : "click to mark"));
+      c.addEventListener("click", () => {
+        if (activeStats.has("mean")) activeStats.delete("mean"); else activeStats.add("mean");
+        renderResults(data);
+      });
+      return c;
+    }
+
+    cards.appendChild(statCard("max", `Max ${fmeta.label}`, round3(fst.max), funit, "Mark the maximum on the chart"));
+    cards.appendChild(statCard(null, "Age at max", round2(fst.maxAge), "yr"));
+    cards.appendChild(statCard("min", `Min ${fmeta.label}`, round3(fst.min), funit, "Mark the minimum on the chart"));
+    cards.appendChild(statCard(null, "Age at min", round2(fst.minAge), "yr"));
+    cards.appendChild(meanCard());
     cards.appendChild(statCard("final", `Final ${fmeta.label}`, round3(fst.final), funit, "Mark the final value"));
     host.appendChild(cards);
 
@@ -574,8 +617,13 @@
     const fkey = (focusKey && data.series[focusKey]) ? focusKey : "Cblood";
     const fst = computeStats(data.xYears, data.series[fkey]);
     const ann = { hlines: [], points: [] };
-    if (activeStats.has("mean")) ann.hlines.push({ y: round3(fst.mean), color: "#8250df", label: "mean " + round3(fst.mean) });
-    if (activeStats.has("peak")) ann.points.push({ x: fst.peakAge, y: fst.peak, color: "#cf222e", label: "peak " + round3(fst.peak) });
+    if (activeStats.has("mean")) {
+      const mv = meanMode === "geo" ? fst.geomean : fst.mean;
+      if (isFinite(mv)) ann.hlines.push({ y: round3(mv), color: "#8250df",
+        label: (meanMode === "geo" ? "geo mean " : "mean ") + round3(mv) });
+    }
+    if (activeStats.has("max")) ann.points.push({ x: fst.maxAge, y: fst.max, color: "#cf222e", label: "max " + round3(fst.max) });
+    if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0969da", label: "min " + round3(fst.min) });
     if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#1a7f37", label: "final " + round3(fst.final) });
     renderChart($("#chart"), {
       x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann,
@@ -613,6 +661,14 @@
     renderSimulation(vInputs);
     renderMedia(vInputs);
     renderIter(vInputs);
+
+    // bottom action bar so users can run without scrolling back to the top
+    const runBar = ce("div", "run-bar");
+    const runBtnBottom = ce("button", "run-btn-lg", "Run model");
+    runBtnBottom.type = "button";
+    runBtnBottom.addEventListener("click", runModel);
+    runBar.appendChild(runBtnBottom);
+    vInputs.appendChild(runBar);
 
     // --- Tab 2: Advanced options (growth / physiology / lung) ---
     const vAdv = $("#view-advanced");
