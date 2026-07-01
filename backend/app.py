@@ -107,5 +107,18 @@ def run(cfg: RunConfig):
 
 
 # ---- static frontend (mounted last so /api/* wins) ------------------------- #
+class NoCacheStatic(StaticFiles):
+    """Serve the frontend without browser caching, so edits always show on refresh."""
+    def is_not_modified(self, response_headers, request_headers) -> bool:
+        return False
+
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
+
+
 if os.path.isdir(FRONTEND_DIR):
-    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+    app.mount("/", NoCacheStatic(directory=FRONTEND_DIR, html=True), name="frontend")

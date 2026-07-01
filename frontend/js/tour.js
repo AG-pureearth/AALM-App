@@ -22,7 +22,7 @@
       text: "Peak, average, and final blood-lead levels appear here with a chart. Tick series on the left to add more lines, and hover the chart to read exact values." }
   ];
 
-  const SEEN_KEY = "aalm_tour_seen";
+  const SEEN_KEY = "aalm_tour_seen_v2";
   let idx = 0;
   let overlay, spot, bubble, arrow, active = false;
 
