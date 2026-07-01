@@ -10,8 +10,8 @@
       text: "This short tour shows how to run a simulation. You can replay it any time with the “Guide” button at the top." },
     { sel: "#f-simname", tab: "inputs", title: "Step 1 — Name your run",
       text: "Type a short name using letters, numbers, or underscores (for example City_Test1). It labels your results files." },
-    { sel: '[data-tour="sim"]', tab: "inputs", title: "Step 2 — Set the basics",
-      text: "Choose the start and end age (in years) and the sex. The other settings have sensible defaults — leave them unless you have a reason to change them." },
+    { sel: '[data-tour="sim"]', tab: "inputs", title: "Step 2 — Set the age and sex",
+      text: "Set the start and end age (in years) and the sex — these describe the person you’re modeling, so you should choose them yourself. The other settings on this tab are less important and can usually be left at their defaults." },
     { sel: '[data-tour="media"]', tab: "inputs", title: "Step 3 — Set the exposure",
       text: "Turn on the lead sources that apply, then enter the concentrations and daily intake amounts. Use the “+ age” button to add values at more ages." },
     { sel: '.tab[data-view="advanced"]', tab: "inputs", title: "Step 4 — Advanced options (optional)",
@@ -22,7 +22,7 @@
       text: "When the run finishes, the Results tab opens automatically with a chart and summary statistics. Click a statistic to mark it on the chart, and hover the chart to read exact values." }
   ];
 
-  const SEEN_KEY = "aalm_tour_seen_v3";
+  const SEEN_KEY = "aalm_tour_seen_v4";
   let idx = 0;
   let overlay, spot, bubble, arrow, active = false;
 
