@@ -222,8 +222,8 @@
           for (let i = 0; i < md.sources; i++) concRows.push({ label: `Source ${i + 1}`, arr: md.concs[i] });
           body.appendChild(vectorTable(md.concAgesYr, "yr", concRows, drawMedia));
           // intake table
-          body.appendChild(ce("div", "subhead", `Intake (${meta.intakeUnit})`));
-          const intakeRows = [{ label: "Intake", arr: md.intakeAmt }];
+          body.appendChild(ce("div", "subhead", "Intake"));
+          const intakeRows = [{ label: `Intake (${meta.intakeUnit})`, arr: md.intakeAmt }];
           if (md.sources > 1) for (let i = 0; i < md.sources; i++) intakeRows.push({ label: `Fraction S${i + 1}`, arr: md.frac[i] });
           body.appendChild(vectorTable(md.intakeAgesYr, "yr", intakeRows, drawMedia));
           // RBA
@@ -231,9 +231,9 @@
           // masks
           body.appendChild(maskEditor(md));
         } else {
-          body.appendChild(ce("div", "subhead", `Source amount (${meta.amtUnit})`));
+          body.appendChild(ce("div", "subhead", "Intake (source amount)"));
           const rows = [];
-          for (let i = 0; i < md.sources; i++) rows.push({ label: `Source ${i + 1}`, arr: md.srcAmt[i] });
+          for (let i = 0; i < md.sources; i++) rows.push({ label: `Source ${i + 1} (${meta.amtUnit})`, arr: md.srcAmt[i] });
           body.appendChild(vectorTable(md.srcAgesYr, "yr", rows, drawMedia));
           body.appendChild(rbaRow(md));
         }
