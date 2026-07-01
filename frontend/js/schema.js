@@ -126,12 +126,56 @@ window.AALM_SCHEMA = {
   },
 
   media: {
-    soil:  { label: "Soil",  concUnit: "µg/g",  intakeUnit: "g/day" },
-    dust:  { label: "Dust",  concUnit: "µg/g",  intakeUnit: "g/day" },
-    water: { label: "Water", concUnit: "µg/L",  intakeUnit: "L/day" },
-    air:   { label: "Air",   concUnit: "µg/m³", intakeUnit: "m³/day" },
-    food:  { label: "Food",  amtUnit: "µg/day" },
-    other: { label: "Other", amtUnit: "µg/day" }
+    soil:  { label: "Soil",  concUnit: "µg/g",  intakeUnit: "g/day",
+      rec: {
+        conc: "Background ≈ 25; post-1940 housing ≈ 50; pre-1940 housing ≈ 250 µg/g",
+        intakeLabel: "Soil ingestion rate", intakeUnit: "g/day",
+        intake: [["Birth", "0.018"], ["3 mo", "0.032"], ["1 yr", "0.041"],
+                 ["5 yr", "0.036"], ["10 yr", "0.027"], ["≥15 yr", "0.014"]],
+        rba: "0.6 (relative to dissolved lead)"
+      }
+    },
+    dust:  { label: "Dust",  concUnit: "µg/g",  intakeUnit: "g/day",
+      rec: {
+        conc: "Background ≈ 175 µg/g, or 70% of the soil value when dust is soil-derived",
+        intakeLabel: "Dust ingestion rate", intakeUnit: "g/day",
+        intake: [["Birth", "0.022"], ["3 mo", "0.039"], ["1 yr", "0.050"],
+                 ["5 yr", "0.044"], ["10 yr", "0.033"], ["≥15 yr", "0.017"]],
+        rba: "0.6 (soil-derived) or 1.0 (paint-derived)"
+      }
+    },
+    water: { label: "Water", concUnit: "µg/L",  intakeUnit: "L/day",
+      rec: {
+        conc: "≈ 0.9 µg/L (average U.S. public tap water)",
+        intakeLabel: "Water intake rate", intakeUnit: "L/day",
+        intake: [["Birth", "0.20"], ["3 mo", "0.30"], ["1 yr", "0.35"], ["5 yr", "0.35"],
+                 ["10 yr", "0.45"], ["15 yr", "0.55"], ["25 yr", "0.70"], ["≥50 yr", "1.04"]],
+        rba: "1.0"
+      }
+    },
+    air:   { label: "Air",   concUnit: "µg/m³", intakeUnit: "m³/day",
+      rec: {
+        conc: "≈ 0.01 µg/m³ (background), or ≈ 0.21 near a large emission source",
+        intakeLabel: "Ventilation rate", intakeUnit: "m³/day",
+        intake: [["<1 yr", "5.4"], ["1–2 yr", "8.0"], ["2–3 yr", "8.9"], ["3–6 yr", "10.1"],
+                 ["6–11 yr", "12.0"], ["11–16 yr", "15.2"], ["16–21 yr", "16.3"], ["Adult", "≈15.7"]],
+        rba: "1.0 (applies only to the swallowed fraction)"
+      }
+    },
+    food:  { label: "Food",  amtUnit: "µg/day",
+      rec: {
+        intakeLabel: "Food lead intake", intakeUnit: "µg/day",
+        intake: [["1 yr", "2.3"], ["2 yr", "3.3"], ["5 yr", "6.0"], ["10 yr", "7.7"],
+                 ["15 yr", "9.2 F / 10.8 M"], ["≥20 yr", "7.9 F / 10.0 M"]],
+        rba: "1.0",
+        note: "Adult default ≈ 10 µg/day (~0.14 µg/kg body-weight/day). Values entered directly as µg/day."
+      }
+    },
+    other: { label: "Other", amtUnit: "µg/day",
+      rec: {
+        note: "Catch-all for sources not listed (e.g., breast milk, occupational dust). No EPA default — enter a site-specific intake in µg/day. Breast-milk example: ≈ 0.13 µg/day per µg/dL of maternal blood lead (central estimate), up to ≈ 1.0 (protective)."
+      }
+    }
   },
 
   iter: {
