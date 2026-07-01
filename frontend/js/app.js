@@ -160,10 +160,11 @@
   // ---------------------------------------------------------------- sections
   function renderSimulation(parent) {
     const sec = section("Simulation");
+    sec.dataset.tour = "sim";
     const b = sec._body;
     const grid = ce("div", "grid");
     grid.appendChild(field(S.sim.simName.label, "", (() => {
-      const inp = ce("input"); inp.type = "text"; inp.value = cfg.simName; inp.maxLength = 19;
+      const inp = ce("input"); inp.type = "text"; inp.id = "f-simname"; inp.value = cfg.simName; inp.maxLength = 19;
       inp.addEventListener("input", () => { cfg.simName = inp.value; });
       return inp;
     })(), S.sim.simName.help));
@@ -186,6 +187,7 @@
 
   function renderMedia(parent) {
     const sec = section("Exposure media");
+    sec.dataset.tour = "media";
     sec._body.appendChild(mediaHost);
     parent.appendChild(sec);
     drawMedia();
@@ -492,6 +494,7 @@
     renderIter(form);
 
     const growthSec = section("Growth parameters", { advanced: true, collapsed: true });
+    growthSec.dataset.tour = "advanced";
     growthHost = ce("div"); growthSec._body.appendChild(growthHost); renderGrowth(growthHost);
     form.appendChild(growthSec);
 
@@ -500,7 +503,10 @@
     renderLung(form);
 
     $("#run-btn").addEventListener("click", runModel);
+    const tb = $("#tour-btn");
+    if (tb) tb.addEventListener("click", () => window.AALM_startTour(true));
     setStatus("Ready. Adjust inputs and press “Run model”.", "");
+    if (window.AALM_maybeAutoTour) window.AALM_maybeAutoTour();
   }
 
   document.addEventListener("DOMContentLoaded", init);

@@ -105,3 +105,36 @@ button.secondary:hover { background: #f0f3f6; }
 .errbox h3 { margin: 0 0 6px; color: var(--err); font-size: 1rem; }
 pre.log { background: #0d1117; color: #d1d9e0; padding: 10px; border-radius: 6px; font-size: .76rem; overflow-x: auto; max-height: 280px; white-space: pre-wrap; }
 .runinfo { margin-bottom: 12px; font-size: .85rem; }
+
+/* guided tour */
+header.topbar button#tour-btn {
+  background: transparent; color: #dbeafe; border: 1px solid #4d7ba6;
+  padding: 7px 12px; border-radius: 6px; font-size: .85rem; cursor: pointer;
+}
+header.topbar button#tour-btn:hover { background: rgba(255,255,255,.1); }
+.tour-overlay { position: fixed; inset: 0; z-index: 1000; background: transparent; cursor: default; }
+.tour-spot {
+  position: fixed; z-index: 1001; border-radius: 8px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(11, 22, 40, .55); transition: all .18s ease-out;
+}
+.tour-bubble {
+  position: fixed; z-index: 1002; width: 320px; max-width: calc(100vw - 24px);
+  background: #fff; border-radius: 10px; padding: 14px 16px 12px;
+  box-shadow: 0 8px 28px rgba(11,22,40,.35); font-size: .9rem; color: var(--ink);
+}
+.tour-arrow {
+  position: absolute; width: 14px; height: 14px; background: #fff; transform: rotate(45deg);
+  box-shadow: 0 8px 28px rgba(11,22,40,.15);
+}
+.tour-arrow.up { box-shadow: -3px -3px 6px rgba(11,22,40,.06); }
+.tour-arrow.down { box-shadow: 3px 3px 6px rgba(11,22,40,.06); }
+.tour-title { font-weight: 700; color: #0b3d63; margin-bottom: 5px; font-size: .98rem; }
+.tour-text { color: #424a53; line-height: 1.5; }
+.tour-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.tour-count { font-size: .78rem; color: var(--muted); }
+.tour-btns { display: flex; gap: 8px; }
+.tour-back { background: #fff; border: 1px solid var(--line); color: #424a53; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85rem; }
+.tour-next { background: #2da44e; border: 0; color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: .85rem; font-weight: 600; }
+.tour-next:hover { background: #2c974b; }
+.tour-skip { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--muted); font-size: .78rem; cursor: pointer; text-decoration: underline; }
+.tour-skip:hover { color: var(--ink); }

@@ -73,6 +73,10 @@ background. When you’re finished, simply close that black window to shut the a
 
 ## How to use the app
 
+> **First time?** When the app opens, a short **step-by-step guide** pops up and walks
+> you through everything below. You can close it any time, and replay it later by
+> clicking the **❓ Guide** button at the top right.
+
 1. **Name your run.** At the top of the inputs, type a short **Simulation name**
    (letters, numbers, and underscores only — for example `City_Test1`).
 2. **Set the basics.** Choose the start and end **age** (in years), the **sex**, and

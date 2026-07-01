@@ -11,6 +11,9 @@ and view blood-lead and tissue-concentration results — all backed by the origi
   time-series charts of blood lead and other compartments).
 - There is **no “import a parameter file” function** — inputs are entered directly in
   the UI, by design.
+- A **guided walkthrough** (spotlight bubbles) auto-starts on first visit and can be
+  replayed with the **Guide** button, stepping users through naming a run, setting
+  exposures, and viewing results.
 
 The app is built as a portable **static frontend + REST API** so it runs locally now
 and can be deployed to the web later (see *Deployment*).
