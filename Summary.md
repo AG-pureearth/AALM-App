@@ -247,8 +247,6 @@ life stage.
 4. Adjust the parameters above for your scenario and run.
 5. Open `AALM_ExploreData_v3-1.xlsm` to view and plot the results.
 
-Model support: brown.james@epa.gov and PbHelp@epa.gov.
-
 ---
 
 ## 7. Troubleshooting
