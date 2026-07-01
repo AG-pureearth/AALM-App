@@ -33,24 +33,29 @@ You need three pieces:
    download once.
 3. **Python 3** — free, one-time install.
 
-### Step 1 — Get the app from GitHub
+### Step 1 — Download the app
 
-Choose one:
+You do **not** need a GitHub account, and you do **not** need to install Git. Just
+download the app as a normal folder of files:
 
-- **With Git installed** — open a terminal in a writable folder under your user
-  directory (for example `C:\Users\<you>\`) and run:
+1. Open the app's download page in your browser:
+   <https://github.com/AG-pureearth/AALM-App>
+2. Click the green **Code** button, then **Download ZIP**.
+3. Find the downloaded `.zip` file (usually in your **Downloads** folder), right-click
+   it, and choose **Extract All…**.
+4. Move the extracted folder somewhere **writable under `C:\Users\<you>\`** — for
+   example `C:\Users\<you>\AALM-App`. The model will **not** run correctly from
+   OneDrive, a synced Documents folder, or a network drive.
 
-  ```bash
-  git clone https://github.com/<owner>/<repo>.git
-  ```
+The folder you extracted — the one containing `Start AALM App.bat`, `backend/`, and
+`frontend/` — is called the **app folder** below.
 
-- **Without Git** — on the repository page click **Code ▸ Download ZIP**, then
-  right-click the downloaded file → **Extract All**.
-
-Put the resulting folder somewhere **writable under `C:\Users\<you>\`**. The model will
-not run correctly from OneDrive, a synced Documents folder, or a network drive. Below,
-the folder that contains `Start AALM App.bat`, `backend/`, and `frontend/` is called the
-**app folder**.
+> **Getting a newer version later:** a downloaded ZIP is a snapshot. To get future
+> updates, download the ZIP again and replace the folder.
+>
+> *For developers:* if you have Git, you can instead
+> `git clone https://github.com/AG-pureearth/AALM-App.git` and later `git pull` for
+> updates.
 
 ### Step 2 — Download the AALM v3.1 model engine (`AALM_64.exe`)
 
