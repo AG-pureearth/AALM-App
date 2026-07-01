@@ -177,7 +177,7 @@ header.topbar button#tour-btn:hover { background: rgba(255,255,255,.1); }
   box-shadow: 0 0 0 9999px rgba(11, 22, 40, .55); transition: all .18s ease-out;
 }
 .tour-bubble {
-  position: fixed; z-index: 1002; width: 320px; max-width: calc(100vw - 24px);
+  position: fixed; z-index: 1002; width: 360px; max-width: calc(100vw - 24px);
   background: #fff; border-radius: 10px; padding: 14px 16px 12px;
   box-shadow: 0 8px 28px rgba(11,22,40,.35); font-size: .9rem; color: var(--ink);
 }
@@ -187,7 +187,7 @@ header.topbar button#tour-btn:hover { background: rgba(255,255,255,.1); }
 }
 .tour-arrow.up { box-shadow: -3px -3px 6px rgba(11,22,40,.06); }
 .tour-arrow.down { box-shadow: 3px 3px 6px rgba(11,22,40,.06); }
-.tour-title { font-weight: 700; color: #0b3d63; margin-bottom: 5px; font-size: .98rem; }
+.tour-title { font-weight: 700; color: #0b3d63; margin-bottom: 5px; font-size: .98rem; padding-right: 72px; }
 .tour-text { color: #424a53; line-height: 1.5; }
 .tour-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
 .tour-count { font-size: .78rem; color: var(--muted); }
