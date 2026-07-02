@@ -192,7 +192,7 @@
     const sec = section("Exposure media");
     sec.dataset.tour = "media";
     const note = ce("p", "media-doc-note");
-    note.appendChild(document.createTextNode("Recommended ingestion rates can be found in the "));
+    note.appendChild(document.createTextNode("Ingestion rates based on the U.S. population can be found in the "));
     const link = ce("a", null, "All Ages Lead Model Technical Guidance document");
     link.href = "docs/AALM-Technical-Support-Document.pdf";
     link.target = "_blank";

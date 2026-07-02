@@ -8,8 +8,8 @@
   const STEPS = [
     { center: true, title: "Welcome to the AALM app",
       text: "This short tour shows how to run a simulation. You can replay it any time with the “Guide” button at the top." },
-    { sel: "#f-simname", tab: "inputs", title: "Step 1 — Name your run",
-      text: "Type a short name using letters, numbers, or underscores (for example City_Test1). It labels your results files." },
+    { sel: "#f-simname", tab: "inputs", title: "Step 1 — Set your simulation parameters",
+      text: "Name your run (letters, numbers, or underscores — for example City_Test1), then set the simulation parameters that describe the person you’re modeling, including the sex and the start and end age(s)." },
     { sel: '[data-tour="sim"]', tab: "inputs", title: "Step 2 — Set the age and sex",
       text: "Set the start and end age (in years) and the sex — these describe the person you’re modeling, so you should choose them yourself. The other settings on this tab are less important and can usually be left at their defaults." },
     { sel: '[data-tour="media"]', tab: "inputs", title: "Step 3 — Set the exposure",
