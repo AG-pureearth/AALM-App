@@ -27,12 +27,12 @@ def resolve_exe():
     env = os.environ.get("AALM_EXE")
     if env and os.path.isfile(env):
         return env
-    parent = os.path.dirname(APP_ROOT)
+    engine_dir = os.path.join(APP_ROOT, "EPA AALM")   # bundled with the app
     for c in ("AALM_64.exe", "AALM_32.exe"):
-        p = os.path.join(parent, c)
+        p = os.path.join(engine_dir, c)
         if os.path.isfile(p):
             return p
-    return os.path.join(parent, "AALM_64.exe")
+    return os.path.join(engine_dir, "AALM_64.exe")
 
 
 def make_example2_config():

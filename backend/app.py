@@ -33,17 +33,21 @@ os.makedirs(RUNS_ROOT, exist_ok=True)
 
 
 def _resolve_exe() -> str:
-    """Locate AALM_64.exe (override with the AALM_EXE environment variable)."""
+    """Locate the AALM engine.
+
+    Default: the copy bundled with the app at "AALM App/EPA AALM/". Override
+    with the AALM_EXE environment variable (e.g. for web deployment).
+    """
     env = os.environ.get("AALM_EXE")
     if env and os.path.isfile(env):
         return os.path.abspath(env)
-    parent = os.path.dirname(APP_ROOT)            # the original software folder
+    engine_dir = os.path.join(APP_ROOT, "EPA AALM")   # bundled with the app
     for cand in ("AALM_64.exe", "AALM_32.exe"):
-        p = os.path.join(parent, cand)
+        p = os.path.join(engine_dir, cand)
         if os.path.isfile(p):
             return os.path.abspath(p)
     # last resort: return the expected 64-bit path (errors surface at run time)
-    return os.path.join(parent, "AALM_64.exe")
+    return os.path.join(engine_dir, "AALM_64.exe")
 
 
 EXE_PATH = _resolve_exe()
