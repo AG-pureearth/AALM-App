@@ -626,8 +626,7 @@
     if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0969da", label: "min " + round3(fst.min) });
     if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#1a7f37", label: "final " + round3(fst.final) });
     renderChart($("#chart"), {
-      x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann,
-      marker: (markerAge != null ? { x: markerAge } : null)
+      x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann
     });
   }
 
