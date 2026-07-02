@@ -157,7 +157,7 @@ window.AALM_SCHEMA = {
       { name: "Excretion (µg, cumulative)", keys: ["Aurine", "Afecal", "Asweat", "Ahair"] }
     ],
     meta: {
-      Cblood:  { label: "Blood lead (BLL)", unit: "µg/dL" },
+      Cblood:  { label: "Blood Lead Level (BLL)", unit: "µg/dL" },
       Cplas:   { label: "Plasma lead", unit: "µg/dL" },
       Ckidney: { label: "Kidney", unit: "µg/g" },
       Cliver:  { label: "Liver", unit: "µg/g" },
