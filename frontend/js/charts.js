@@ -149,9 +149,11 @@
 
     const overlay = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
     overlay.addEventListener("mousemove", ev => {
-      const pt = svg.getBoundingClientRect();
-      const scale = W / pt.width;
-      const mxData = xmin + ((ev.clientX - pt.left) * scale - m.l) / iw * (xmax - xmin);
+      // Map the pointer against the plot area's real on-screen rect, so the
+      // crosshair tracks the mouse regardless of how the SVG is scaled.
+      const pr = overlay.getBoundingClientRect();
+      const frac = (ev.clientX - pr.left) / (pr.width || 1);
+      const mxData = xmin + frac * (xmax - xmin);
       // nearest index
       let lo = 0, hi = x.length - 1;
       while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (x[mid] < mxData) lo = mid; else hi = mid; }
