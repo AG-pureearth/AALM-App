@@ -12,25 +12,20 @@ There are two parts:
 
 You only do Steps 1–3 once. After that, running the app is just Step 4.
 
-### Step 1 — Keep the app folder in the right place
+### Step 1 — Put the app folder in a good place
 
-The app lives in a folder called **`AALM App`**, inside your main AALM folder:
+Everything the app needs — including the lead-model calculation engine — is already
+inside the **`AALM App`** folder. You do **not** have to download or move any program
+files yourself. (The engine, `AALM_64.exe`, lives in a subfolder called **`EPA AALM`**
+inside the app.)
 
-```
-C:\Users\Abigail Gilbert\AALM_V3-1 1-original\AALM App
-```
+**One important rule:** keep the **`AALM App`** folder somewhere under your user folder
+(the `C:\Users\<your name>\...` area) — for example on your Desktop or in a plain
+folder there. The model will **not** work properly if you move it into **Documents**,
+**OneDrive**, or a shared **network drive**.
 
-**Important rules:**
-- Keep the **`AALM App`** folder *inside* the `AALM_V3-1 1-original` folder, next to the
-  file named **`AALM_64.exe`**. The app needs that file to do its calculations.
-- Keep everything under your user folder (the `C:\Users\Abigail Gilbert\...` area).
-  The model will **not** work properly if you move it into **Documents**, **OneDrive**,
-  or a shared **network drive**.
-
-You do **not** have to place or move any program files yourself. Everything the app
-needs is already inside the `AALM App` folder. (You will install one free program —
-Python — in the next step, but that installs itself automatically; you don't move any
-files by hand.)
+(You will install one free program — Python — in the next step, but that installs
+itself automatically; you don't move any files by hand.)
 
 ### Step 2 — Install Python (a free program the app needs)
 
@@ -147,8 +142,9 @@ The app has two pieces:
 - the **screens** you see in the browser (these work anywhere), and
 - the **calculation engine** — the lead model itself.
 
-The calculation engine is the file **`AALM_64.exe`**, and it only runs on **Windows**.
-So putting the app on the web means deciding where that engine will run.
+The calculation engine is the file **`AALM_64.exe`** (it lives in the app's
+**`EPA AALM`** subfolder), and it only runs on **Windows**. So putting the app on the
+web means deciding where that engine will run.
 
 ### The simplest options (easiest to hardest)
 
@@ -158,20 +154,21 @@ So putting the app on the web means deciding where that engine will run.
    change. This is the least work.
 
 2. **A Windows machine in the cloud.** Rent a Windows server from a cloud provider
-   (for example Microsoft Azure or Amazon Web Services), copy the `AALM App` folder and
-   `AALM_64.exe` onto it, install Python, and start the app the same way you do on your
-   own computer. Then share the server’s web address.
+   (for example Microsoft Azure or Amazon Web Services), copy the whole `AALM App`
+   folder onto it (the engine comes with it), install Python, and start the app the
+   same way you do on your own computer. Then share the server’s web address.
 
 3. **A standard (non-Windows) web host.** Most web hosting runs on a system called
    Linux, which **cannot** run the Windows engine as-is. To use this kind of hosting,
    a developer would need to rebuild the lead model from its original source code
-   (the file `code/AALM31_Fortran.f90`) so it runs on Linux. The app was deliberately
-   built so this is a small, contained change — only one file
+   (the AALM `AALM31_Fortran.f90` source, from EPA) so it runs on Linux. The app was
+   deliberately built so this is a small, contained change — only one file
    (`backend/model_runner.py`) needs to point to the new engine.
 
 ### What to give your IT person
 
-- The whole **`AALM App`** folder and the **`AALM_64.exe`** file.
+- The whole **`AALM App`** folder (the Windows engine is already inside it, in the
+  **`EPA AALM`** subfolder).
 - A note that the technical setup steps and a ready-made container recipe are in
   **`README.md`** and **`Dockerfile`** in that folder.
 - This sentence: *“The Python app and web pages are ready to deploy; the only

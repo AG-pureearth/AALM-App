@@ -25,13 +25,8 @@ and can be deployed to the web later (see *Deployment*).
 
 ## Run it locally (Windows)
 
-You need three pieces:
-
-1. **This app** — from this GitHub repository.
-2. **The AALM v3.1 model engine** (`AALM_64.exe`) — downloaded separately from EPA.
-   It is **not** included in this repository; it is EPA-distributed software you
-   download once.
-3. **Python 3** — free, one-time install.
+You need just two things: **this app** and **Python 3**. The AALM v3.1 model engine is
+**bundled inside the app**, so there is nothing extra to download from EPA.
 
 ### Step 1 — Download the app
 
@@ -47,8 +42,14 @@ download the app as a normal folder of files:
    example `C:\Users\<you>\AALM-App`. The model will **not** run correctly from
    OneDrive, a synced Documents folder, or a network drive.
 
-The folder you extracted — the one containing `Start AALM App.bat`, `backend/`, and
-`frontend/` — is called the **app folder** below.
+The folder you extracted — the one containing `Start AALM App.bat`, `backend/`,
+`frontend/`, and `EPA AALM/` — is called the **app folder** below.
+
+> **The model engine is included.** The AALM v3.1 engine (`AALM_64.exe`, plus the
+> 32-bit `AALM_32.exe`) ships inside the app's **`EPA AALM/`** subfolder. It is the
+> original EPA software from
+> <https://www.epa.gov/land-research/all-ages-lead-model-aalm>; you do **not** need to
+> download or place it yourself.
 
 > **Getting a newer version later:** a downloaded ZIP is a snapshot. To get future
 > updates, download the ZIP again and replace the folder.
@@ -57,38 +58,12 @@ The folder you extracted — the one containing `Start AALM App.bat`, `backend/`
 > `git clone https://github.com/AG-pureearth/AALM-App.git` and later `git pull` for
 > updates.
 
-### Step 2 — Download the AALM v3.1 model engine (`AALM_64.exe`)
-
-1. Download the official **All Ages Lead Model (AALM) version 3.1** software from EPA's
-   AALM web page:
-   <https://www.epa.gov/land-research/all-ages-lead-model-aalm>
-2. Unzip it and find **`AALM_64.exe`** — the 64-bit Windows engine. (`AALM_32.exe`
-   also works if you have it.)
-3. Copy `AALM_64.exe` into the folder that **contains** your app folder — i.e. one level
-   **above** it. The app looks for the engine right next to the app folder:
-
-   ```
-   C:\Users\<you>\
-   ├─ AALM_64.exe          ← the engine you downloaded (put it HERE)
-   └─ <app folder>\        ← this repository
-       ├─ backend\
-       ├─ frontend\
-       └─ Start AALM App.bat
-   ```
-
-   **Alternative (don't move the file):** point the app at wherever the engine already
-   lives by setting an environment variable once, then reopening the app:
-
-   ```bat
-   setx AALM_EXE "C:\full\path\to\AALM_64.exe"
-   ```
-
-### Step 3 — Install Python 3
+### Step 2 — Install Python 3
 
 Install **Python 3** from <https://www.python.org/downloads/>. On the first installer
 screen, tick **“Add python.exe to PATH.”** (One-time.)
 
-### Step 4 — Run it
+### Step 3 — Run it
 
 Double-click **`Start AALM App.bat`** in the app folder.
 
@@ -96,9 +71,10 @@ Double-click **`Start AALM App.bat`** in the app folder.
 - It then starts the server and opens <http://localhost:8000/> in your browser.
 - Keep the black console window open while using the app; close it to stop the server.
 
-If the app reports **“Model executable not found,”** the engine isn't where the app
-expects — recheck Step 2 (place `AALM_64.exe` one level above the app folder, or set
-`AALM_EXE`).
+If the app reports **“Model executable not found,”** the bundled engine is missing —
+make sure the **`EPA AALM/`** folder (with `AALM_64.exe` inside) is still present in the
+app folder. Advanced users can point the app at a different engine with the `AALM_EXE`
+environment variable.
 
 ### Manual start (any OS, for developers)
 
@@ -113,8 +89,8 @@ python -m uvicorn app:app --reload --port 8000
 
 Open <http://localhost:8000/>. Interactive API docs are at `/docs`.
 
-The backend finds the engine in the folder above the app folder by default; override
-with the `AALM_EXE` environment variable (see Step 2).
+The backend finds the engine in the app's `EPA AALM/` subfolder by default; override
+with the `AALM_EXE` environment variable.
 
 ---
 
@@ -169,9 +145,9 @@ The frontend and API are host-agnostic. The one platform-specific piece is the
 
 To deploy to a typical Linux host or container:
 
-1. Provide a model binary for the target OS — either recompile the Fortran source
-   (`code/AALM31_Fortran.f90`) for Linux, or have `model_runner.py` call out to a
-   separate Windows host/service.
+1. Provide a model binary for the target OS — either recompile the AALM Fortran source
+   (`AALM31_Fortran.f90`, part of the EPA AALM distribution) for Linux, or have
+   `model_runner.py` call out to a separate Windows host/service.
 2. Set `AALM_EXE` to that binary's path. **`model_runner.py` is the only file that
    needs to change** — the API and UI are unaffected.
 3. Build and run the container (see `Dockerfile`), or host the frontend statically and
@@ -190,6 +166,7 @@ AALM App/
   README.md
   Summary.md              model overview
   Input Variables.md      parameter reference
+  EPA AALM/               bundled model engine (AALM_64.exe, AALM_32.exe)
   shared/
     defaults.json         canonical default parameter values
   backend/
