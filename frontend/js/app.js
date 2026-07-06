@@ -677,6 +677,16 @@
       "most simulations use the defaults.";
     vAdv.appendChild(note);
 
+    const advDoc = ce("p", "media-doc-note");
+    advDoc.appendChild(document.createTextNode("Definitions and recommended values for these parameters can be found in the "));
+    const advLink = ce("a", null, "All Ages Lead Model Technical Guidance document");
+    advLink.href = "docs/AALM-Technical-Support-Document.pdf";
+    advLink.target = "_blank";
+    advLink.rel = "noopener";
+    advDoc.appendChild(advLink);
+    advDoc.appendChild(document.createTextNode("."));
+    vAdv.appendChild(advDoc);
+
     const growthSec = section("Growth parameters", { advanced: true, collapsed: false });
     growthHost = ce("div"); growthSec._body.appendChild(growthHost); renderGrowth(growthHost);
     vAdv.appendChild(growthSec);
