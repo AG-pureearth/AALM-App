@@ -5,8 +5,10 @@
 
 (function () {
   const SVGNS = "http://www.w3.org/2000/svg";
-  const PALETTE = ["#1f6feb", "#d1242f", "#1a7f37", "#9a6700", "#8250df",
-                   "#bf3989", "#0969da", "#cf222e", "#116329", "#4d2d00"];
+  // Okabe–Ito color-blind-safe qualitative palette. Ordered for strong contrast on
+  // the white plot background (yellow, the weakest on white, is placed last).
+  const PALETTE = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00",
+                   "#56B4E9", "#000000", "#F0E442"];
 
   function el(name, attrs, parent) {
     const e = document.createElementNS(SVGNS, name);

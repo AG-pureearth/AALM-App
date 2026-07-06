@@ -619,12 +619,12 @@
     const ann = { hlines: [], points: [] };
     if (activeStats.has("mean")) {
       const mv = meanMode === "geo" ? fst.geomean : fst.mean;
-      if (isFinite(mv)) ann.hlines.push({ y: round3(mv), color: "#8250df",
+      if (isFinite(mv)) ann.hlines.push({ y: round3(mv), color: "#CC79A7",
         label: (meanMode === "geo" ? "geo mean " : "mean ") + round3(mv) });
     }
-    if (activeStats.has("max")) ann.points.push({ x: fst.maxAge, y: fst.max, color: "#cf222e", label: "max " + round3(fst.max) });
-    if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0969da", label: "min " + round3(fst.min) });
-    if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#1a7f37", label: "final " + round3(fst.final) });
+    if (activeStats.has("max")) ann.points.push({ x: fst.maxAge, y: fst.max, color: "#D55E00", label: "max " + round3(fst.max) });
+    if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0072B2", label: "min " + round3(fst.min) });
+    if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#009E73", label: "final " + round3(fst.final) });
     renderChart($("#chart"), {
       x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann
     });
