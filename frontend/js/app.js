@@ -325,7 +325,7 @@
     const grid = ce("div", "grid grid-tight");
     Object.keys(S.physConst).forEach(k => {
       const [unit, def] = S.physConst[k];
-      grid.appendChild(field(k, unit === "--" ? "" : unit, numInput(cfg.physConst[k], v => cfg.physConst[k] = v), def));
+      grid.appendChild(field(`${def} (${k})`, unit === "--" ? "" : unit, numInput(cfg.physConst[k], v => cfg.physConst[k] = v)));
     });
     sec._body.appendChild(grid);
     parent.appendChild(sec);
@@ -334,7 +334,7 @@
   function renderPhysTimeDep(parent) {
     const sec = section("Physiology — age-varying", { advanced: true, collapsed: true });
     sec._body.appendChild(ce("p", "muted", "Each row is a parameter; each column is an age breakpoint (years). Values are filled between breakpoints using the Stepwise/Interpolated setting."));
-    const rows = Object.keys(S.physTimeDep).map(k => ({ label: k, arr: cfg.physTimeDep[k], help: S.physTimeDep[k][1] }));
+    const rows = Object.keys(S.physTimeDep).map(k => ({ label: `${S.physTimeDep[k][1]} (${k})`, arr: cfg.physTimeDep[k] }));
     // build with fixed (non-editable) age columns shown in years
     const t = vectorTable(cfg.physAges, "yr", rows, () => {}, { agesEditable: false });
     sec._body.appendChild(t);
@@ -353,8 +353,8 @@
     Object.keys(S.lung).forEach(k => {
       const [unit, def] = S.lung[k];
       const tr = ce("tr");
-      const rh = ce("td", "rowhdr"); rh.textContent = k + (unit ? ` (${unit})` : "");
-      rh.title = def; tr.appendChild(rh);
+      const rh = ce("td", "rowhdr"); rh.textContent = `${def} (${k})` + (unit ? ` (${unit})` : "");
+      tr.appendChild(rh);
       cfg.lung[k].forEach((val, i) => {
         const td = ce("td"); td.appendChild(numInput(val, v => cfg.lung[k][i] = v)); tr.appendChild(td);
       });
