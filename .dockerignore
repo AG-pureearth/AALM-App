@@ -1,0 +1,6 @@
+# keep the build context small and reproducible
+backend/.venv/
+runs/
+__pycache__/
+*.pyc
+*.zip

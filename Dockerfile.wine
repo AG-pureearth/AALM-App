@@ -1,0 +1,52 @@
+# Dockerfile.wine — run the AALM app (static frontend + FastAPI backend) on
+# Linux, executing the UNMODIFIED Windows engine (AALM_64.exe) via Wine.
+#
+# This is the "no-recompile" path to a web-hosted app: the same binary runs, so
+# results are bit-identical on an x86-64 host. It is EXPERIMENTAL until the
+# Example 2 self-test passes inside the container — see
+# "Deploying with Docker and Wine.md" (Part 3).
+#
+# Build:  docker build -f Dockerfile.wine -t aalm-app .
+# Run:    docker run --rm -p 8000:8000 aalm-app   -> http://localhost:8000
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV WINEDEBUG=-all
+ENV WINEARCH=win64
+ENV WINEPREFIX=/opt/wineprefix
+
+# Wine (to run the Windows exe) + Python (to run the app). A 64-bit-only Wine
+# prefix (WINEARCH=win64) keeps the image simple — no 32-bit packages needed.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        wine64 xvfb \
+        python3 python3-pip \
+        ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Python dependencies (FastAPI / uvicorn)
+COPY backend/requirements.txt /app/backend/requirements.txt
+RUN pip3 install --no-cache-dir -r /app/backend/requirements.txt
+
+# Application code + the bundled Windows engine
+COPY backend/  /app/backend/
+COPY frontend/ /app/frontend/
+COPY shared/   /app/shared/
+COPY ["EPA AALM/", "/app/EPA AALM/"]
+
+# Point the app at a wrapper that runs the engine under Wine, instead of
+# executing the .exe directly. _resolve_exe() picks this up from AALM_EXE, so
+# no Python code changes are required.
+COPY ["docker/aalm-wine.sh", "/usr/local/bin/aalm-wine"]
+RUN chmod +x /usr/local/bin/aalm-wine
+ENV AALM_EXE=/usr/local/bin/aalm-wine
+
+# Initialise the Wine prefix at build time so the first model run isn't slow.
+RUN wine64 wineboot --init || true
+
+EXPOSE 8000
+WORKDIR /app/backend
+CMD ["python3", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
