@@ -99,6 +99,11 @@ This packages the app + Python + Wine + the engine into one Docker image.
 
 ## Part 4 — Troubleshooting (Wine-specific)
 
+- **The run fails with “did not produce an output file,” and the self-test shows
+  `exit 127`.** That's "Wine command not found." Different Wine packages name the loader
+  differently (`wine64` vs Ubuntu's `wine64-stable`); the wrapper `docker/aalm-wine.sh`
+  now auto-detects whichever is present. If you saw this on an older copy, pull the
+  latest files and **rebuild** (Part 2).
 - **The self-test fails with a Wine/loader error, or the exe “can't start.”**
   The engine may need Intel Fortran runtime libraries that aren't in the base image, or
   the bundled Wine (Ubuntu's is older) may be too old. Try a newer Wine by switching the

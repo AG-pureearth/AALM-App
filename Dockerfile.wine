@@ -45,7 +45,10 @@ RUN chmod +x /usr/local/bin/aalm-wine
 ENV AALM_EXE=/usr/local/bin/aalm-wine
 
 # Initialise the Wine prefix at build time so the first model run isn't slow.
-RUN wine64 wineboot --init || true
+# (Ubuntu's distro package names the loader "wine64-stable".)
+RUN (command -v wine64 >/dev/null 2>&1 && wine64 wineboot --init) \
+ || (command -v wine64-stable >/dev/null 2>&1 && wine64-stable wineboot --init) \
+ || true
 
 EXPOSE 8000
 WORKDIR /app/backend
