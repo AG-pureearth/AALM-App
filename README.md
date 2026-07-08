@@ -18,79 +18,50 @@ and view blood-lead and tissue-concentration results — all backed by the origi
   replayed with the **Guide** button, stepping users through naming a run, setting
   exposures, and viewing results.
 
-The app is built as a portable **static frontend + REST API** so it runs locally now
-and can be deployed to the web later (see *Deployment*).
+The app is a **web app** — a browser front-end plus a small REST API that runs the
+engine — so you use it entirely in a web browser. There is no desktop program to install.
 
 ---
 
-## Run it locally (Windows)
+## Open the app in your browser
 
-You need just two things: **this app** and **Python 3**. The AALM v3.1 model engine is
-**bundled inside the app**, so there is nothing extra to download from EPA.
+The AALM v3.1 engine is **bundled with the app** (in the `EPA AALM/` folder), so there is
+nothing to download from EPA. There are two ways to load the app in a browser:
 
-### Step 1 — Download the app
+### Option 1 — Hosted online (a public link)
 
-You do **not** need a GitHub account, and you do **not** need to install Git. Just
-download the app as a normal folder of files:
-
-1. Open the app's download page in your browser:
-   <https://github.com/AG-pureearth/AALM-App>
-2. Click the green **Code** button, then **Download ZIP**.
-3. Find the downloaded `.zip` file (usually in your **Downloads** folder), right-click
-   it, and choose **Extract All…**.
-4. Move the extracted folder somewhere **writable under `C:\Users\<you>\`** — for
-   example `C:\Users\<you>\AALM-App`. The model will **not** run correctly from
-   OneDrive, a synced Documents folder, or a network drive.
-
-The folder you extracted — the one containing `Start AALM App.bat`, `backend/`,
-`frontend/`, and `EPA AALM/` — is called the **app folder** below.
-
-> **The model engine is included.** The AALM v3.1 engine (`AALM_64.exe`, plus the
-> 32-bit `AALM_32.exe`) ships inside the app's **`EPA AALM/`** subfolder. It is the
-> original EPA software from
-> <https://www.epa.gov/land-research/all-ages-lead-model-aalm>; you do **not** need to
-> download or place it yourself.
-
-> **Getting a newer version later:** a downloaded ZIP is a snapshot. To get future
-> updates, download the ZIP again and replace the folder.
+> **Live URL:** _not deployed yet._
 >
-> *For developers:* if you have Git, you can instead
-> `git clone https://github.com/AG-pureearth/AALM-App.git` and later `git pull` for
-> updates.
+> To create one, follow **[Deploying with Docker and Wine.md](Deploying%20with%20Docker%20and%20Wine.md)**.
+> It packages the app (engine included) and hosts it at a public web address — e.g. on
+> Render, Fly.io, or Google Cloud Run. Once deployed, paste the URL here; anyone with the
+> link then opens the app in their browser with **nothing to install**.
 
-### Step 2 — Install Python 3
+### Option 2 — Run it with Docker, then open it in your browser
 
-Install **Python 3** from <https://www.python.org/downloads/>. On the first installer
-screen, tick **“Add python.exe to PATH.”** (One-time.)
+Works on any computer (Windows, macOS, or Linux). Docker runs the app — the Windows
+engine included, via Wine — and serves it to your browser at `http://localhost:8000`.
+This is also the basis for the hosted option above. The full walkthrough, including how
+to install Docker, is in
+**[Deploying with Docker and Wine.md](Deploying%20with%20Docker%20and%20Wine.md)**; in short:
 
-### Step 3 — Run it
+1. Get the app from GitHub — on <https://github.com/AG-pureearth/AALM-App> click
+   **Code ▸ Download ZIP** and extract it (or `git clone`), then open a terminal in the
+   app folder (the one containing `Dockerfile.wine`).
+2. Install **Docker Desktop** (<https://www.docker.com/products/docker-desktop/>).
+3. Build and run:
+   ```bash
+   docker build -f Dockerfile.wine -t aalm-app .
+   docker run --rm -p 8000:8000 aalm-app
+   ```
+4. Open <http://localhost:8000> in your browser.
 
-Double-click **`Start AALM App.bat`** in the app folder.
+### For developers
 
-- On first run it creates a private virtual environment and installs FastAPI/uvicorn.
-- It then starts the server and opens <http://localhost:8000/> in your browser.
-- Keep the black console window open while using the app; close it to stop the server.
-
-If the app reports **“Model executable not found,”** the bundled engine is missing —
-make sure the **`EPA AALM/`** folder (with `AALM_64.exe` inside) is still present in the
-app folder. Advanced users can point the app at a different engine with the `AALM_EXE`
-environment variable.
-
-### Manual start (any OS, for developers)
-
-```bash
-cd backend
-python -m venv .venv
-.venv/Scripts/activate        # Windows
-# source .venv/bin/activate   # macOS/Linux
-pip install -r requirements.txt
-python -m uvicorn app:app --reload --port 8000
-```
-
-Open <http://localhost:8000/>. Interactive API docs are at `/docs`.
-
-The backend finds the engine in the app's `EPA AALM/` subfolder by default; override
-with the `AALM_EXE` environment variable.
+To run the backend directly (no Docker): from `backend/`, create a virtualenv,
+`pip install -r requirements.txt`, then `python -m uvicorn app:app --reload --port 8000`
+and open <http://localhost:8000/> (interactive API docs at `/docs`). The engine is found
+in `EPA AALM/` by default; override with the `AALM_EXE` environment variable.
 
 ---
 
@@ -138,22 +109,20 @@ runs/<SimName>/        ← generated input + CSV outputs per run (git-ignored)
 
 ---
 
-## Deployment (web, later)
+## Host it on the web
 
-The frontend and API are host-agnostic. The one platform-specific piece is the
-**model binary**, because `AALM_64.exe` is a Windows executable.
+The recommended path is the **Docker + Wine** image: it runs the unmodified Windows
+engine on a Linux host with **no recompilation**, then deploys the same container to a
+public URL (Render, Fly.io, or Google Cloud Run). This has been verified to reproduce the
+Example 2 result inside the container. Full, tested walkthrough:
+**[Deploying with Docker and Wine.md](Deploying%20with%20Docker%20and%20Wine.md)**.
 
-To deploy to a typical Linux host or container:
-
-1. Provide a model binary for the target OS — either recompile the AALM Fortran source
-   (`AALM31_Fortran.f90`, part of the EPA AALM distribution) for Linux, or have
-   `model_runner.py` call out to a separate Windows host/service.
-2. Set `AALM_EXE` to that binary's path. **`model_runner.py` is the only file that
-   needs to change** — the API and UI are unaffected.
-3. Build and run the container (see `Dockerfile`), or host the frontend statically and
-   the API on any Python host (Render, Fly.io, Azure App Service, a VM, etc.). If the
-   frontend is served from a different origin than the API, set `window.AALM_API_BASE`
-   in `frontend/index.html` to the API URL (CORS is already enabled).
+The engine (`AALM_64.exe`) is the one platform-specific piece — a Windows binary — so it
+either runs under **Wine** (the Docker path above) or is recompiled from the AALM Fortran
+source (`AALM31_Fortran.f90`, part of the EPA distribution) for the target OS.
+`model_runner.py` is the only file that invokes the engine; the API and UI are unaffected.
+If you host the frontend separately (e.g. GitHub Pages / Netlify), point it at the API with
+`window.AALM_API_BASE` in `frontend/index.html` (CORS is already enabled).
 
 ---
 
@@ -161,8 +130,11 @@ To deploy to a typical Linux host or container:
 
 ```
 AALM App/
-  Start AALM App.bat      one-click local launcher (Windows)
-  Dockerfile              container image for web deployment
+  Deploying with Docker and Wine.md  web-hosting guide (Docker + Wine)
+  Dockerfile.wine         container image that runs the engine via Wine
+  docker/aalm-wine.sh     wrapper: runs the Windows engine under Wine
+  Dockerfile              base container image (bring-your-own model binary)
+  Start AALM App.bat      optional one-click local launcher (Windows)
   README.md
   Summary.md              model overview
   Input Variables.md      parameter reference
