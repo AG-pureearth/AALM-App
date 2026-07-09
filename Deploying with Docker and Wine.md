@@ -1,158 +1,135 @@
-# Running the AALM App in a Browser with Docker + Wine
+# Running the AALM App in a Browser (Docker + Wine)
 
-This guide takes the AALM app and runs it as a **web app** — reachable in a browser —
-without recompiling the model. It does this by running the unmodified Windows engine
-(`AALM_64.exe`) on Linux through **Wine**, inside a **Docker** container.
+This runs the AALM app as a **web app you open in a browser**, without recompiling the
+model: the unmodified Windows engine (`AALM_64.exe`) runs on Linux through **Wine**,
+inside a **Docker** container.
 
-You will do two things:
+You've already installed Docker, so the first part below is just a couple of commands.
+The second part — putting it on a public URL so *anyone* can use it — is optional and
+comes later.
 
-1. **Build and test it on your own computer** (this proves it works — the hard part).
-2. **Deploy it to a public web address** (optional follow-on, needs a hosting account).
-
-> **Read this first — three honest points.**
-> - This does **not** run on GitHub Pages. Pages only serves static files; it can't run
->   the engine. Docker + Wine gives you a running **backend** that you host somewhere.
-> - **Fidelity:** because the *same* `.exe` runs, results are effectively bit-identical
->   to Windows — **as long as the machine is x86-64** (normal Intel/AMD; not ARM).
-> - This setup is **experimental until you complete Part 3** — the go/no-go test is
->   whether the engine reproduces EPA's Example 2 inside the container.
-
-The repository already contains everything the steps below refer to:
-`Dockerfile.wine`, `docker/aalm-wine.sh`, and the engine in `EPA AALM/`.
+> The engine, the UI, Python, Wine, and the web server are all included in the image.
+> The repository already contains what the steps refer to: `Dockerfile.wine`,
+> `docker/aalm-wine.sh`, and the engine in `EPA AALM/`.
 
 ---
 
-## Part 1 — Install Docker Desktop (Windows)
+## Part 1 — Run it in your browser (on your own computer)
 
-Docker is the tool that builds and runs the Linux container. You install it once.
+### Step 1 — Open a terminal in the app folder
 
-1. **Turn on virtualization / WSL2** (Docker needs it):
-   - Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)*).
-   - Run: `wsl --install`
-   - If it asks you to restart, do so. (If WSL is already installed, this does nothing
-     harmful.)
-2. **Download Docker Desktop:** go to <https://www.docker.com/products/docker-desktop/>
-   and click **Download for Windows**.
-3. **Install it:** open the downloaded installer, keep the default options (make sure
-   **“Use WSL 2”** stays checked), and finish. Restart if prompted.
-4. **Start Docker Desktop** from the Start menu. Wait until the whale icon in the
-   taskbar stops animating and says **“Engine running.”**
-5. **Verify it works.** Open a normal PowerShell window and run:
-   ```powershell
-   docker --version
-   docker run --rm hello-world
-   ```
-   The second command should print a “Hello from Docker!” message. If it does, Docker is
-   ready.
+Open **PowerShell** and go to the app folder (the one containing `Dockerfile.wine`):
 
-> **Licensing:** Docker Desktop is free for individuals, education, and small
-> organizations (fewer than 250 employees **and** under $10M revenue) — a non-profit
-> like Pure Earth almost certainly qualifies. If you'd rather not use it, **Rancher
-> Desktop** or **Podman Desktop** are free alternatives that run the same commands.
+```powershell
+cd "c:\Users\Abigail Gilbert\AALM_V3-1 1-original\AALM App"
+```
 
----
+### Step 2 — Build the app image (first time only)
 
-## Part 2 — Build the app image
+```powershell
+docker build -f Dockerfile.wine -t aalm-app .
+```
 
-This packages the app + Python + Wine + the engine into one Docker image.
+The first build downloads Ubuntu, Wine, and Python and takes **several minutes**. You
+only do this once — repeat it later only if you change the app.
 
-1. Open PowerShell in the **app folder** (the folder containing `Dockerfile.wine`):
-   ```powershell
-   cd "c:\Users\Abigail Gilbert\AALM_V3-1 1-original\AALM App"
-   ```
-2. Build the image:
-   ```powershell
-   docker build -f Dockerfile.wine -t aalm-app .
-   ```
-   The first build downloads Ubuntu, Wine, and Python and can take **several minutes**.
-   You only pay this cost once; later builds are fast. A successful build ends without
-   an error and shows the image being tagged `aalm-app`.
+### Step 3 — Start the app
 
----
+```powershell
+docker run --rm -p 8000:8000 aalm-app
+```
 
-## Part 3 — Run it and open it in the browser (the go/no-go test)
+Leave this window open — it's the running server. (Press **Ctrl+C** to stop it.)
 
-1. Start the container:
-   ```powershell
-   docker run --rm -p 8000:8000 aalm-app
-   ```
-   Leave this window open — it's the running server. (Press **Ctrl+C** to stop it.)
-2. Open your browser to: <http://localhost:8000>
-   The app should load exactly like the local version.
-3. **Validate the engine (this is the important test).** In the app:
-   - Reproduce **Example 2**, or any run, and click **Run model**.
-   - Confirm you get results and a chart.
-   The definitive check is the built-in self-test. Open a **second** PowerShell window
-   (leave the server running in the first) and run it in a throwaway container:
-   ```powershell
-   docker run --rm aalm-app python3 test_core.py
-   ```
-   A pass prints:
-   ```
-   PASS: model output reproduces the original Example2 result.
-   ALL TESTS PASSED
-   ```
-   with **peak 2.1926 / mean 0.6163 / final 0.5705**. **If you see this, Wine is running
-   the engine faithfully and Option B is viable.** If it fails, see Troubleshooting.
+### Step 4 — Open it in your browser
+
+Go to **<http://localhost:8000>**. Use the app normally: set your inputs, click
+**Run model**, and view the results.
+
+**That's it.** To use the app again another day, just repeat **Step 3** (no rebuild
+needed). Only re-run Step 2 after you've changed the app's files.
+
+> **If a model run fails with “did not produce an output file”:** a run can use about
+> **3 GB of RAM** (more for very long simulations). Docker Desktop's default is usually
+> enough, but if you hit this, open **Docker Desktop ▸ Settings ▸ Resources** and raise
+> the **Memory** limit to **4 GB or more**, then try again.
+
+> **Optional confidence check.** In a *second* PowerShell window (leave the server
+> running), run the built-in self-test:
+> ```powershell
+> docker run --rm aalm-app python3 test_core.py
+> ```
+> It should end with `ALL TESTS PASSED` and **peak 2.1926 / mean 0.6163 / final 0.5705**,
+> confirming the engine reproduces EPA's Example 2 exactly.
 
 ---
 
-## Part 4 — Troubleshooting (Wine-specific)
+## Part 2 — If something doesn't work
 
-- **The run fails with “did not produce an output file,” and the self-test shows
-  `exit 127`.** That's "Wine command not found." Different Wine packages name the loader
-  differently (`wine64` vs Ubuntu's `wine64-stable`); the wrapper `docker/aalm-wine.sh`
-  now auto-detects whichever is present. If you saw this on an older copy, pull the
-  latest files and **rebuild** (Part 2).
-- **The self-test fails with a Wine/loader error, or the exe “can't start.”**
-  The engine may need Intel Fortran runtime libraries that aren't in the base image, or
-  the bundled Wine (Ubuntu's is older) may be too old. Try a newer Wine by switching the
-  first line of `Dockerfile.wine` to an image that ships current Wine (e.g.
-  `FROM scottyhardy/docker-wine:latest`) and rebuild, or install the WineHQ stable repo.
-- **Errors mentioning “no display” / `wineboot` hangs.** Wrap the engine call in a
-  virtual display: change `docker/aalm-wine.sh`'s last line to
-  `exec xvfb-run -a wine64 "/app/EPA AALM/AALM_64.exe" "$@"` and rebuild.
-- **Results differ from Windows.** Confirm the host is **x86-64**, not ARM. On Apple
-  Silicon or ARM cloud instances, Wine emulates and fidelity/speed suffer — use an
-  x86-64 machine/host.
-- **Port already in use.** Something else is on 8000. Run on another port:
-  `docker run --rm -p 8080:8000 aalm-app` and open <http://localhost:8080>.
-- **Rebuild after any change:** re-run the `docker build …` command from Part 2.
+- **“Port is already in use.”** Something else is on port 8000. Use another:
+  `docker run --rm -p 8080:8000 aalm-app`, then open <http://localhost:8080>.
+- **A run fails / empty results.** Raise Docker's memory (see the note above). If you
+  updated the app, rebuild with Step 2 first.
+- **The self-test shows `exit 127`.** "Wine command not found." The wrapper
+  `docker/aalm-wine.sh` auto-detects the Wine loader name; if you saw this on an older
+  copy, download the latest files and rebuild (Step 2).
+- **Results differ from Windows.** Make sure the computer is **x86-64** (normal
+  Intel/AMD, not ARM). On ARM, Wine emulates and results/speed suffer.
 
 ---
 
-## Part 5 — Put it on the public web (make it a website for others)
+## Part 3 — Next steps: put it on a public URL
 
-Once Part 3 passes, the **same image** can run on a cloud host so anyone with the link
-can use it. The app already serves the frontend and API together on one port, so you
-just need to host the container.
+Everything above runs the app **only on your computer** (`localhost` works just for you).
+To let anyone open it by typing a web address, the **same image** runs on an always-on
+cloud host, which gives you a public `https://…` URL. The app already serves the UI and
+the API together on one port, so there's nothing to split up — you just host the container.
 
-Pick one host (all can run a Docker image; all need you to create an account):
+### The one thing that shapes the choice: memory
 
-- **Fly.io** — good free/low-cost tier, simple for containers.
-  ```powershell
-  # after installing flyctl and signing in:
-  fly launch --dockerfile Dockerfile.wine   # answer the prompts
-  fly deploy
-  ```
-  It gives you a URL like `https://aalm-app.fly.dev`.
-- **Google Cloud Run** — pay-per-use, scales to zero.
-  ```powershell
-  gcloud run deploy aalm-app --source . --port 8000 --allow-unauthenticated
-  ```
+Testing showed a model run peaks at about **3 GB of RAM** (and more for long
+simulations). This rules out the **free tiers** of cloud hosts, which cap at 512 MB — the
+app needs a few GB. That's the main cost driver.
+
+### Recommended host: Google Cloud Run
+
+For an app used in bursts (someone runs a model, reads results, leaves), **Cloud Run** is
+the best fit: it **charges only while a run is actually computing** and scales to zero
+when idle, while still allowing the several GB of RAM each run needs.
+
+- **Cost:** likely **free to a few dollars a month** for occasional use (a fraction of a
+  cent per run, under a generous monthly free allowance).
+- **Trade-off:** the first visit after it's been idle waits ~15–30 seconds while it wakes
+  up (“cold start”).
+
+**Alternatives** (if you prefer no cold-start and a predictable flat bill):
+
 - **Render** — connect the GitHub repo, choose “Docker,” point it at `Dockerfile.wine`.
+  Needs its ~4 GB plan (about $85/month) because smaller plans lack the RAM.
+- **Fly.io** — deploy the image with `flyctl`; a ~4 GB machine with auto-stop is roughly
+  $20–30/month, less if it sleeps when idle.
 
-Notes:
-- **Choose an x86-64 host** (the default on all three) so results stay bit-identical.
-- **Cost:** free tiers exist but may “sleep” when idle (a few seconds of cold-start on
-  the first request) and have usage limits. A small always-on instance is a few dollars
-  a month.
-- **Security/scale:** a public URL means anyone can submit runs. For a low-traffic tool
-  this is fine; if abuse is a concern, put it behind a simple password or access list.
-- **(Optional) split the frontend to GitHub Pages/Netlify.** You can host just the UI as
-  a static site and point it at the hosted backend by setting `window.AALM_API_BASE` in
-  `frontend/index.html` to the backend URL (CORS is already enabled). Most people should
-  skip this and let the one container serve both.
+### What each of us does
+
+- **You (one-time, ~5 min):** create the host account and enable billing. A credit card
+  is required even when usage is free — it's how the host verifies the account. **This
+  part must be you** (your identity and payment).
+- **Me (the rest):** install the host's command-line tool on your machine, build and
+  upload the image, and deploy it with the right settings — for Cloud Run that's about
+  **8 GB RAM, one run at a time, scale-to-zero**:
+  ```powershell
+  gcloud run deploy aalm-app --source . --port 8000 \
+     --memory 8Gi --cpu 2 --concurrency 1 --timeout 900 --allow-unauthenticated
+  ```
+  Then I hand you the public URL and paste it into the README so it's the “Live URL.”
+
+### A couple of things to know
+
+- **Pick an x86-64 host** (the default on all three) so results stay identical to Windows.
+- **Anyone with the link can submit runs.** For a low-traffic tool that's fine; if abuse
+  is a concern later, we can put it behind a simple password.
+
+When you've picked a host and made the account, tell me and I'll drive the deployment.
 
 ---
 
@@ -168,5 +145,18 @@ Browser ──HTTP──> Docker container (on your PC, then on a cloud host)
 The only new moving part is Wine. The app is pointed at `docker/aalm-wine.sh` through the
 `AALM_EXE` environment variable (set in `Dockerfile.wine`); that wrapper runs the Windows
 engine under Wine. Because `model_runner.py` already invokes the engine by path with a
-relative argument and a set working directory, **no Python code changes are needed** —
-the local Windows app is completely unaffected by any of this.
+relative argument and a set working directory, **no Python code changes are needed**.
+
+---
+
+## Appendix — Installing Docker (for reference)
+
+You've already done this, but for a fresh machine:
+
+1. **Enable WSL2:** in **PowerShell (Admin)** run `wsl --install`, and restart if asked.
+2. **Install Docker Desktop:** from <https://www.docker.com/products/docker-desktop/>,
+   keeping **“Use WSL 2”** checked.
+3. **Verify:** `docker run --rm hello-world` prints a “Hello from Docker!” message.
+
+Docker Desktop is free for a non-profit like Pure Earth. Free alternatives that run the
+same commands: **Rancher Desktop** or **Podman Desktop**.
