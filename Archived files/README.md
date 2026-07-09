@@ -6,7 +6,6 @@ reference rather than deleted. Nothing in the running app (`Dockerfile.wine`, `b
 
 | File | What it was |
 |------|-------------|
-| `Start AALM App.bat` | One-click launcher to run the app directly on Windows with Python (no Docker/Wine). Superseded by the Docker workflow. |
 | `Dockerfile` | The original base container image (bring-your-own Linux binary). Superseded by `Dockerfile.wine`, which bundles the engine and runs it via Wine. |
 | `Summary.md` | Overview of the AALM model. |
 | `Input Variables.md` | Reference for the model's input parameters. |

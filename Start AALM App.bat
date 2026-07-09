@@ -33,10 +33,10 @@ echo  Starting the AALM app...  a browser tab will open at http://localhost:8000
 echo  Keep THIS window open while you use the app; close it to stop the server.
 echo.
 
-REM open the browser a few seconds after the server starts.
-REM The ?fresh=%RANDOM% part makes the browser load a brand-new page each time
-REM instead of an old saved (cached) copy. (PowerShell handles quoting cleanly.)
-start "" /min powershell -NoProfile -Command "Start-Sleep 3; Start-Process 'http://localhost:8000/?fresh=%RANDOM%'"
+REM Open the default browser to the app. The ?fresh=%RANDOM% part makes the browser
+REM load a brand-new page each time instead of an old saved (cached) copy.
+REM If it opens before the server is ready, just wait a moment and refresh the page.
+start "" "http://localhost:8000/?fresh=%RANDOM%"
 
 "%VENV_PY%" -m uvicorn app:app --port 8000
 pause
