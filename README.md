@@ -109,6 +109,50 @@ runs/<SimName>/        ← generated input + CSV outputs per run (git-ignored)
 
 ---
 
+## Software it's built with
+
+The key thing to know: **you only install two things yourself** — Docker and a web
+browser. Almost everything else is either bundled with the app or installed
+automatically inside the Docker container.
+
+**What you install on your computer**
+
+| Software | Why |
+|----------|-----|
+| **Docker Desktop** | Builds and runs the whole app in a container. On Windows it uses **WSL2** (a lightweight Linux layer) under the hood, which Docker sets up for you. |
+| **A web browser** | To use the app — the screens appear at `http://localhost:8000`. You already have one. |
+
+**Bundled with the app** (no install needed)
+
+| Software | Role |
+|----------|------|
+| **AALM engine — `AALM_64.exe`** | The lead model itself: a compiled Fortran program from EPA, in the `EPA AALM/` folder. |
+| **Frontend (HTML / CSS / JavaScript)** | The screens you interact with, running in your browser. No framework or build tools (no Node.js) — deliberately dependency-free. |
+
+**Installed automatically inside the container** (via `Dockerfile.wine`)
+
+| Software | Role |
+|----------|------|
+| **Ubuntu Linux** | The operating system the container runs on. |
+| **Wine** | Runs the **Windows** `AALM_64.exe` on **Linux** — the bridge that makes hosting possible. |
+| **Python 3** | Runs the backend. |
+| **FastAPI** | Web framework — serves the UI and the `/api/run` endpoint. |
+| **Uvicorn** | The web server that runs FastAPI and listens on port 8000. |
+
+FastAPI and Uvicorn are the only two entries in `backend/requirements.txt`; they pull in
+a few small helper libraries automatically.
+
+```
+Your browser  ──►  Uvicorn + FastAPI (Python)  ──►  Wine  ──►  AALM_64.exe
+   (the UI)          the web server / API            bridge      the model
+        └──────────── all inside one Docker container (Ubuntu) ──────────┘
+```
+
+Hosting the app publicly later needs one more thing — a cloud host account (and possibly
+its command-line tool) — but that is **not** required to run the app on your own machine.
+
+---
+
 ## Host it on the web
 
 The recommended path is the **Docker + Wine** image: it runs the unmodified Windows
