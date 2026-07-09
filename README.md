@@ -174,14 +174,10 @@ If you host the frontend separately (e.g. GitHub Pages / Netlify), point it at t
 
 ```
 AALM App/
-  Deploying with Docker and Wine.md  web-hosting guide (Docker + Wine)
+  Deploying with Docker and Wine.md  build + run + hosting guide
   Dockerfile.wine         container image that runs the engine via Wine
   docker/aalm-wine.sh     wrapper: runs the Windows engine under Wine
-  Dockerfile              base container image (bring-your-own model binary)
-  Start AALM App.bat      optional one-click local launcher (Windows)
   README.md
-  Summary.md              model overview
-  Input Variables.md      parameter reference
   EPA AALM/               bundled model engine (AALM_64.exe, AALM_32.exe)
   shared/
     defaults.json         canonical default parameter values
@@ -200,6 +196,7 @@ AALM App/
     js/charts.js          dependency-free SVG charts
     js/app.js             form generation, run, results
   runs/                   generated per-run inputs/outputs (created at runtime)
+  Archived files/         not needed to run via Docker + Wine (kept for reference)
 ```
 
 Model support for the underlying engine: brown.james@epa.gov and PbHelp@epa.gov.
