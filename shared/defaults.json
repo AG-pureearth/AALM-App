@@ -3,8 +3,8 @@
   "sim": {
     "ageMinYr": 0,
     "ageMaxYr": 7,
-    "stepsPerDay": 100,
-    "outwrite": 100,
+    "stepsPerDay": 25,
+    "outwrite": 25,
     "irbc": 1,
     "iterate": 0,
     "interp": 0
