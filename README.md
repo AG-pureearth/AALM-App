@@ -164,7 +164,7 @@ memory, which a free host doesn't have.
 | Default steps per day | **25** | 100 |
 | Default output interval (`outwrite`) | **25** | 100 |
 | Maximum steps per day | **25** | (uncapped) |
-| Maximum simulation length | **15 years** | (uncapped) |
+| Maximum simulation length (end − start age) | **15 years** | (uncapped) |
 
 These keep every run under ~512 MB. A message on the Simulation inputs tab tells users
 about the limits.
@@ -178,7 +178,8 @@ or your own computer), you can restore the original behaviour:
    - `"stepsPerDay": 100`   (currently `25`)
    - `"outwrite": 100`      (currently `25`)
 2. **Input caps** — in `frontend/js/app.js`, in the `renderSimulation` function:
-   - change the end-age field's `{ min: 0, max: 15 }` back to `{ min: 0 }`
+   - raise or remove the simulation-length limit: change `const MAX_AGE_SPAN = 15;` to a
+     larger number (or remove the `validateAgeSpan` check)
    - change the steps-per-day field's `{ min: 1, max: 25, step: 1 }` back to `{ min: 1, step: 1 }`
    - remove the on-screen limits note (the `media-doc-note` paragraph mentioning
      “15 years and 25 steps per day”)
