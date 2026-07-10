@@ -153,6 +153,43 @@ its command-line tool) — but that is **not** required to run the app on your o
 
 ---
 
+## Simulation limits (and how to restore the full range)
+
+To fit within a **free 512 MB host** (such as Render's free tier), this app ships with
+**reduced defaults and input caps** — a long or high-resolution run needs several GB of
+memory, which a free host doesn't have.
+
+| Setting | This build | Original |
+|---------|-----------|----------|
+| Default steps per day | **25** | 100 |
+| Default output interval (`outwrite`) | **25** | 100 |
+| Maximum steps per day | **25** | (uncapped) |
+| Maximum simulation length | **15 years** | (uncapped) |
+
+These keep every run under ~512 MB. A message on the Simulation inputs tab tells users
+about the limits.
+
+### Restoring the original, full-capability settings
+
+If you host somewhere with more memory (Hugging Face's 16 GB free tier, Google Cloud Run,
+or your own computer), you can restore the original behaviour:
+
+1. **Defaults** — in `shared/defaults.json`, under `"sim"`, set:
+   - `"stepsPerDay": 100`   (currently `25`)
+   - `"outwrite": 100`      (currently `25`)
+2. **Input caps** — in `frontend/js/app.js`, in the `renderSimulation` function:
+   - change the end-age field's `{ min: 0, max: 15 }` back to `{ min: 0 }`
+   - change the steps-per-day field's `{ min: 1, max: 25, step: 1 }` back to `{ min: 1, step: 1 }`
+   - remove the on-screen limits note (the `media-doc-note` paragraph mentioning
+     “15 years and 25 steps per day”)
+3. Bump the asset version in `frontend/index.html` (e.g. `?v=22` → `?v=23`) so browsers
+   load the change.
+
+**Original defaults:** `stepsPerDay` = **100**, `outwrite` = **100**, with **no cap** on
+simulation length or resolution.
+
+---
+
 ## Host it on the web
 
 The recommended path is the **Docker + Wine** image: it runs the unmodified Windows

@@ -23,10 +23,23 @@
     inp.type = "number";
     inp.value = value;
     if (opts.min != null) inp.min = opts.min;
+    if (opts.max != null) inp.max = opts.max;
     if (opts.step != null) inp.step = opts.step; else inp.step = "any";
+    const clampOpt = (v) => {
+      if (v === "" || isNaN(v)) return v;
+      if (opts.min != null && v < opts.min) v = opts.min;
+      if (opts.max != null && v > opts.max) v = opts.max;
+      return v;
+    };
     inp.addEventListener("input", () => {
-      const v = inp.value === "" ? "" : parseFloat(inp.value);
-      onChange(v);
+      const raw = inp.value === "" ? "" : parseFloat(inp.value);
+      onChange(clampOpt(raw));
+    });
+    // On blur, snap the displayed value back into range (e.g. a typed 100 -> the cap).
+    inp.addEventListener("change", () => {
+      if (inp.value === "") return;
+      const c = clampOpt(parseFloat(inp.value));
+      if (!isNaN(c)) { inp.value = c; onChange(c); }
     });
     return inp;
   }
@@ -172,8 +185,8 @@
       return inp;
     })(), S.sim.simName.help));
     grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, numInput(cfg.sim.ageMinYr, v => cfg.sim.ageMinYr = v, { min: 0 })));
-    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, numInput(cfg.sim.ageMaxYr, v => cfg.sim.ageMaxYr = v, { min: 0 })));
-    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, step: 1 }), S.sim.stepsPerDay.help));
+    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, numInput(cfg.sim.ageMaxYr, v => cfg.sim.ageMaxYr = v, { min: 0, max: 15 })));
+    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, max: 25, step: 1 }), S.sim.stepsPerDay.help));
     grid.appendChild(field(S.sim.outwrite.label, "", numInput(cfg.sim.outwrite, v => cfg.sim.outwrite = v, { min: 1, step: 1 }), S.sim.outwrite.help));
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
@@ -185,6 +198,9 @@
     grid.appendChild(field(S.sim.interp.label, "", selectInput(cfg.sim.interp, S.sim.interp.options, v => cfg.sim.interp = v), S.sim.interp.help));
     grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
     b.appendChild(grid);
+    b.appendChild(ce("p", "media-doc-note",
+      "To fit free web hosting, this app limits simulations to 15 years and 25 steps per day. " +
+      "These limits and the default values can be changed — see the README (“Simulation limits”)."));
     parent.appendChild(sec);
   }
 
