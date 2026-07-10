@@ -85,13 +85,50 @@ To let anyone open it by typing a web address, the **same image** runs on an alw
 cloud host, which gives you a public `https://…` URL. The app already serves the UI and
 the API together on one port, so there's nothing to split up — you just host the container.
 
-### The one thing that shapes the choice: memory
+### The memory trade-off
 
-Testing showed a model run peaks at about **3 GB of RAM** (and more for long
-simulations). This rules out the **free tiers** of cloud hosts, which cap at 512 MB — the
-app needs a few GB. That's the main cost driver.
+A run's memory grows with the simulation length and resolution: a short run is a few
+hundred MB, but a full-lifespan run needs several GB. Because of that, this build ships
+with **caps and reduced defaults** (max 15 years, 25 steps/day — see the README's
+“Simulation limits”) so it **fits a free 512 MB host**. Two paths follow:
 
-### Recommended host: Google Cloud Run
+- **Render's free tier** — free and browser-only, runs the **capped short simulations**.
+- **Google Cloud Run** (or a Render paid plan) — provides several GB, so you can raise the
+  caps and run full lifespans.
+
+### Deploy on Render (free tier, step by step)
+
+Render is the easiest public host — no command line, just the browser. Thanks to the
+built-in simulation caps, the **free** tier works.
+
+**You'll need:** the app on GitHub (<https://github.com/AG-pureearth/AALM-App>) and a free
+Render account (<https://render.com>).
+
+1. In the Render dashboard, click **New ▸ Web Service**.
+2. **Connect a repository** → authorize GitHub → choose **AG-pureearth/AALM-App**.
+3. Set these options:
+   - **Language:** **Docker**
+   - **Branch:** `main`
+   - **Dockerfile Path:** `./Dockerfile.wine` — **important** (the default `./Dockerfile`
+     is archived, so you must point Render at the `.wine` one)
+   - **Instance Type:** **Free** (512 MB — works because of the simulation caps)
+   - **Region:** the one closest to your users
+   - Leave the **Start Command** blank — the image already starts the server and reads
+     Render's assigned port automatically.
+4. Click **Create Web Service**. The first build takes **several minutes** (it downloads
+   Ubuntu + Wine). Watch the log; it's ready when the status shows **“Live.”**
+5. Render gives you a public URL like **`https://aalm-app.onrender.com`** — open it; that's
+   your app, usable by anyone with the link. Paste the URL into the README's “Live URL.”
+
+**About the free tier:**
+- It **sleeps after ~15 minutes** of no traffic; the next visit waits ~1 minute while it
+  wakes up. (Paid instances stay always-on.)
+- It's **512 MB**, so only the **capped short runs** work. To allow longer or full-lifespan
+  runs, raise the caps (README → “Simulation limits”) **and** move to a bigger plan
+  (Render's ~4 GB is about $85/month) or to Cloud Run.
+- **Auto-deploy:** every push to `main` rebuilds and redeploys automatically.
+
+### Full capability: Google Cloud Run (pay-per-use)
 
 For an app used in bursts (someone runs a model, reads results, leaves), **Cloud Run** is
 the best fit: it **charges only while a run is actually computing** and scales to zero
@@ -102,12 +139,8 @@ when idle, while still allowing the several GB of RAM each run needs.
 - **Trade-off:** the first visit after it's been idle waits ~15–30 seconds while it wakes
   up (“cold start”).
 
-**Alternatives** (if you prefer no cold-start and a predictable flat bill):
-
-- **Render** — connect the GitHub repo, choose “Docker,” point it at `Dockerfile.wine`.
-  Needs its ~4 GB plan (about $85/month) because smaller plans lack the RAM.
-- **Fly.io** — deploy the image with `flyctl`; a ~4 GB machine with auto-stop is roughly
-  $20–30/month, less if it sleeps when idle.
+**Another option:** **Fly.io** — deploy the image with `flyctl`; a ~4 GB machine with
+auto-stop is roughly $20–30/month, less if it sleeps when idle.
 
 ### What each of us does
 
