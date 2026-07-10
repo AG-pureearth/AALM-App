@@ -7,7 +7,7 @@ window.AALM_SCHEMA = {
     simName:     { label: "Simulation name", help: "Letters, digits, underscore; under 20 characters. Names the output folder." },
     ageMinYr:    { label: "Age at start", unit: "yr", min: 0, step: 1 },
     ageMaxYr:    { label: "Age at end", unit: "yr", min: 0, step: 1 },
-    stepsPerDay: { label: "Timesteps per day", unit: "", min: 1, step: 1, help: "Numerical resolution. Higher = finer and slower." },
+    stepsPerDay: { label: "Timesteps per day", unit: "", min: 1, step: 1, help: "Numerical resolution. Higher = finer and slower. Capped at 25 to stay within the memory limits of free web hosting." },
     outwrite:    { label: "Timesteps between outputs", unit: "", min: 1, step: 1, help: "Output thinning: write every Nth timestep." },
     sex:         { label: "Sex", type: "select", options: [{ v: 0, t: "Female" }, { v: 1, t: "Male" }] },
     solution:    { label: "Solution type", type: "select",

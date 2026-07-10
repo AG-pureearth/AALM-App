@@ -187,7 +187,6 @@
     grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, numInput(cfg.sim.ageMinYr, v => cfg.sim.ageMinYr = v, { min: 0 })));
     grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, numInput(cfg.sim.ageMaxYr, v => cfg.sim.ageMaxYr = v, { min: 0, max: 15 })));
     grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, max: 25, step: 1 }), S.sim.stepsPerDay.help));
-    grid.appendChild(field(S.sim.outwrite.label, "", numInput(cfg.sim.outwrite, v => cfg.sim.outwrite = v, { min: 1, step: 1 }), S.sim.outwrite.help));
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
       renderGrowth(growthHost);
