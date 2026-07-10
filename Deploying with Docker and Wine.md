@@ -142,6 +142,27 @@ when idle, while still allowing the several GB of RAM each run needs.
 **Another option:** **Fly.io** — deploy the image with `flyctl`; a ~4 GB machine with
 auto-stop is roughly $20–30/month, less if it sleeps when idle.
 
+### Password-protect the app (optional)
+
+The app has built-in password protection you turn on with two environment variables — no
+code changes needed. When both are set, visitors get a browser username/password prompt
+before anything loads; when they're unset, the app is open.
+
+**On Render:** open your web service → **Environment** tab → **Add Environment Variable**,
+and add:
+
+| Key | Value |
+|-----|-------|
+| `AALM_USER` | a username you choose (e.g. `pureearth`) |
+| `AALM_PASSWORD` | a password you choose |
+
+Click **Save Changes** — Render redeploys, and the login is active. (The same two
+variables work on Cloud Run, Fly.io, or a local run.) Share those credentials with the
+people you want to let in; it's **one shared login** for everyone, served over HTTPS.
+
+- **Change the password:** edit `AALM_PASSWORD` and save.
+- **Remove protection:** delete the two variables.
+
 ### What each of us does
 
 - **You (one-time, ~5 min):** create the host account and enable billing. A credit card
