@@ -184,23 +184,9 @@
       inp.addEventListener("input", () => { cfg.simName = inp.value; });
       return inp;
     })(), S.sim.simName.help));
-    const MAX_AGE_SPAN = 15;
-    const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 15 years.");
-    ageWarn.style.display = "none";
-    const ageMinIn = numInput(cfg.sim.ageMinYr, v => { cfg.sim.ageMinYr = v; validateAgeSpan(); }, { min: 0 });
-    const ageMaxIn = numInput(cfg.sim.ageMaxYr, v => { cfg.sim.ageMaxYr = v; validateAgeSpan(); }, { min: 0 });
-    function validateAgeSpan() {
-      const lo = parseFloat(cfg.sim.ageMinYr), hi = parseFloat(cfg.sim.ageMaxYr);
-      const span = (isNaN(hi) ? 0 : hi) - (isNaN(lo) ? 0 : lo);
-      const bad = span > MAX_AGE_SPAN;
-      ageMinIn.classList.toggle("input-error", bad);
-      ageMaxIn.classList.toggle("input-error", bad);
-      ageWarn.style.display = bad ? "" : "none";
-      document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
-    }
-    grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, ageMinIn));
-    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, ageMaxIn));
-    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, max: 25, step: 1 }), S.sim.stepsPerDay.help));
+    grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, numInput(cfg.sim.ageMinYr, v => cfg.sim.ageMinYr = v, { min: 0 })));
+    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, numInput(cfg.sim.ageMaxYr, v => cfg.sim.ageMaxYr = v, { min: 0 })));
+    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, step: 1 }), S.sim.stepsPerDay.help));
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
       renderGrowth(growthHost);
@@ -211,11 +197,6 @@
     grid.appendChild(field(S.sim.interp.label, "", selectInput(cfg.sim.interp, S.sim.interp.options, v => cfg.sim.interp = v), S.sim.interp.help));
     grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
     b.appendChild(grid);
-    b.appendChild(ageWarn);
-    b.appendChild(ce("p", "media-doc-note",
-      "To fit free web hosting, this app limits simulations to 15 years and 25 steps per day. " +
-      "These limits and the default values can be changed — see the README (“Simulation limits”)."));
-    validateAgeSpan();
     parent.appendChild(sec);
   }
 
