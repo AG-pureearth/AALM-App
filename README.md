@@ -153,6 +153,41 @@ its command-line tool) — but that is **not** required to run the app on your o
 
 ---
 
+## Run it as a desktop app (any OS — install only Docker)
+
+For a downloadable app that runs the same on **Windows, macOS, and Linux**, use the
+**prebuilt Docker image**. The **only** software a user installs is **Docker Desktop** —
+the app, the engine, Python, and Wine are all inside the image, so there's nothing else
+to install and nothing to build.
+
+1. Install **Docker Desktop** (<https://www.docker.com/products/docker-desktop/>) and
+   start it.
+2. Download the launcher for your operating system from the [`launchers/`](launchers/)
+   folder:
+   - **Windows:** `Run with Docker (Windows).bat`
+   - **macOS:** `Run with Docker (Mac).command`
+   - **Linux:** `Run with Docker (Linux).sh`
+3. **Double-click** the launcher. The first run downloads the app image (a few minutes);
+   later runs are quick. Your browser opens to <http://localhost:8000>.
+
+Notes:
+- The launcher just runs the published image (`ghcr.io/ag-pureearth/aalm-app`), so a user
+  doesn't even need the rest of the repo — the image contains everything.
+- On a personal computer there's plenty of memory, so the short-run caps aren't needed —
+  see *Simulation limits* below to restore the full range for a local build.
+- **macOS:** if double-clicking doesn't run it, right-click → **Open** the first time, or
+  run `chmod +x "Run with Docker (Mac).command"` once in Terminal. (Downloaded ZIPs don't
+  always keep the “executable” flag.)
+- The image is rebuilt and republished automatically by a GitHub Action
+  (`.github/workflows/publish-image.yml`) on every push to `main`, so it stays current.
+
+> **Maintainer, one-time setup:** the first time the GitHub Action publishes the image it
+> is **private**. Make it public so users can pull it without signing in: on GitHub go to
+> your profile → **Packages** → **aalm-app** → **Package settings** →
+> **Change visibility → Public**.
+
+---
+
 ## Simulation limits (and how to restore the full range)
 
 To fit within a **free 512 MB host** (such as Render's free tier), this app ships with
