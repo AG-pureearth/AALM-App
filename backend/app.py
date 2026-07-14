@@ -61,6 +61,38 @@ app.add_middleware(
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
+# ---- optional password protection (HTTP Basic Auth) ------------------------ #
+# Set AALM_USER and AALM_PASSWORD (e.g. in the Render dashboard) to require a
+# username/password before the app loads. If either is unset (e.g. running
+# locally), no password is required.
+_AUTH_USER = os.environ.get("AALM_USER")
+_AUTH_PASS = os.environ.get("AALM_PASSWORD")
+if _AUTH_USER and _AUTH_PASS:
+    import base64
+    import secrets
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.responses import Response as _Response
+
+    class _BasicAuthMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            if request.url.path == "/api/health" or request.method == "OPTIONS":
+                return await call_next(request)          # allow health checks / CORS preflight
+            header = request.headers.get("Authorization", "")
+            ok = False
+            if header.startswith("Basic "):
+                try:
+                    user, _, pw = base64.b64decode(header[6:]).decode("utf-8").partition(":")
+                    ok = (secrets.compare_digest(user, _AUTH_USER)
+                          and secrets.compare_digest(pw, _AUTH_PASS))
+                except Exception:
+                    ok = False
+            if not ok:
+                return _Response("Authentication required.", status_code=401,
+                                 headers={"WWW-Authenticate": 'Basic realm="AALM"'})
+            return await call_next(request)
+
+    app.add_middleware(_BasicAuthMiddleware)
+
 
 # ---- API ------------------------------------------------------------------- #
 @app.get("/api/health")

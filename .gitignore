@@ -9,6 +9,3 @@ __pycache__/
 # os
 Thumbs.db
 .DS_Store
-
-# editor workspace files
-*.code-workspace
