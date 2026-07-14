@@ -15,6 +15,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV WINEDEBUG=-all
 ENV WINEARCH=win64
 ENV WINEPREFIX=/opt/wineprefix
+# Limit glibc malloc arenas so peak memory stays predictable (removes the RSS
+# "spikes" that otherwise push some runs over a 512 MB host's memory limit).
+ENV MALLOC_ARENA_MAX=2
 
 # Wine (to run the Windows exe) + Python (to run the app). A 64-bit-only Wine
 # prefix (WINEARCH=win64) keeps the image simple — no 32-bit packages needed.

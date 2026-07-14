@@ -89,7 +89,7 @@ the API together on one port, so there's nothing to split up — you just host t
 
 A run's memory grows with the simulation length and resolution: a short run is a few
 hundred MB, but a full-lifespan run needs several GB. Because of that, this build ships
-with **caps and reduced defaults** (max 15 years, 25 steps/day — see the README's
+with **caps and reduced defaults** (max 12 years, 25 steps/day — see the README's
 “Simulation limits”) so it **fits a free 512 MB host**. Two paths follow:
 
 - **Render's free tier** — free and browser-only, runs the **capped short simulations**.
