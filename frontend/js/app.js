@@ -407,7 +407,7 @@
   async function runModel() {
     const btn = $("#run-btn");
     btn.disabled = true; btn.textContent = "Running…";
-    setStatus("Running the model — this can take a few seconds for long simulations…", "busy");
+    setStatus("Running the model — this takes a few seconds (if others are running, yours starts when they finish)…", "busy");
     try {
       const res = await fetch(API + "/api/run", {
         method: "POST", headers: { "Content-Type": "application/json" },

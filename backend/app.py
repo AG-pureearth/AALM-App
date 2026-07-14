@@ -11,6 +11,7 @@ fully static SPA and can also be hosted separately (point it at this API via
 window.AALM_API_BASE). The model executable is invoked only through model_runner.py.
 """
 from __future__ import annotations
+import asyncio
 import json
 import os
 
@@ -18,6 +19,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 from aalm_core import read_out_csv
 from model_runner import run_aalm
@@ -105,29 +107,43 @@ def defaults():
     return DEFAULTS
 
 
+# ---- run queue ------------------------------------------------------------- #
+# Serialize model runs so simultaneous users don't stack memory (a single run can
+# use several hundred MB; two at once could exceed a small host's limit). By default
+# one run executes at a time and additional requests wait their turn, in arrival
+# order. Raise AALM_MAX_CONCURRENT on a host with more memory to allow more.
+_MAX_CONCURRENT = max(1, int(os.environ.get("AALM_MAX_CONCURRENT", "1")))
+_run_gate = asyncio.Semaphore(_MAX_CONCURRENT)
+
+
 @app.post("/api/run")
-def run(cfg: RunConfig):
+async def run(cfg: RunConfig):
     config = cfg.model_dump()
     if not os.path.isfile(EXE_PATH):
         raise HTTPException(status_code=503,
                             detail=f"Model executable not found at {EXE_PATH}. Set the AALM_EXE environment variable.")
-    try:
-        result = run_aalm(config, EXE_PATH, RUNS_ROOT)
-    except (ValueError, TimeoutError) as e:
-        return JSONResponse({"ok": False, "message": str(e)})
 
-    if not os.path.isfile(result.out_csv):
-        tail = "\n".join(result.stdout.splitlines()[-25:])
-        return JSONResponse({
-            "ok": False,
-            "message": "The model did not produce an output file. It may have stopped on an input error.",
-            "exit": result.exit_code, "runInfo": result.run_info, "log": result.log, "stdoutTail": tail,
-        })
+    # Queue: at most _MAX_CONCURRENT run(s) execute at once; others await here in
+    # arrival order. The blocking work runs in a threadpool so the server stays
+    # responsive to other requests (health checks, the queued waiters) meanwhile.
+    async with _run_gate:
+        try:
+            result = await run_in_threadpool(run_aalm, config, EXE_PATH, RUNS_ROOT)
+        except (ValueError, TimeoutError) as e:
+            return JSONResponse({"ok": False, "message": str(e)})
 
-    try:
-        parsed = read_out_csv(result.out_csv)
-    except Exception as e:  # noqa: BLE001
-        return JSONResponse({"ok": False, "message": f"Could not parse model output: {e}"})
+        if not os.path.isfile(result.out_csv):
+            tail = "\n".join(result.stdout.splitlines()[-25:])
+            return JSONResponse({
+                "ok": False,
+                "message": "The model did not produce an output file. It may have stopped on an input error.",
+                "exit": result.exit_code, "runInfo": result.run_info, "log": result.log, "stdoutTail": tail,
+            })
+
+        try:
+            parsed = await run_in_threadpool(read_out_csv, result.out_csv)
+        except Exception as e:  # noqa: BLE001
+            return JSONResponse({"ok": False, "message": f"Could not parse model output: {e}"})
 
     return {
         "ok": True,
