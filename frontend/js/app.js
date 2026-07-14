@@ -185,6 +185,13 @@
       return inp;
     })(), S.sim.simName.help));
     const MAX_AGE_SPAN = 12;
+    const MAX_STEPS = 25;
+    let _ageBad = false, _stepsBad = false;
+    function _updateRunEnabled() {
+      const bad = _ageBad || _stepsBad;
+      document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
+    }
+    // age-span validation (red warning when end − start exceeds the cap)
     const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 12 years.");
     ageWarn.style.display = "none";
     const ageMinIn = numInput(cfg.sim.ageMinYr, v => { cfg.sim.ageMinYr = v; validateAgeSpan(); }, { min: 0 });
@@ -192,15 +199,26 @@
     function validateAgeSpan() {
       const lo = parseFloat(cfg.sim.ageMinYr), hi = parseFloat(cfg.sim.ageMaxYr);
       const span = (isNaN(hi) ? 0 : hi) - (isNaN(lo) ? 0 : lo);
-      const bad = span > MAX_AGE_SPAN;
-      ageMinIn.classList.toggle("input-error", bad);
-      ageMaxIn.classList.toggle("input-error", bad);
-      ageWarn.style.display = bad ? "" : "none";
-      document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
+      _ageBad = span > MAX_AGE_SPAN;
+      ageMinIn.classList.toggle("input-error", _ageBad);
+      ageMaxIn.classList.toggle("input-error", _ageBad);
+      ageWarn.style.display = _ageBad ? "" : "none";
+      _updateRunEnabled();
+    }
+    // timesteps-per-day validation (red warning when it exceeds the cap)
+    const stepsWarn = ce("p", "age-warn", "Timesteps per day cannot exceed 25.");
+    stepsWarn.style.display = "none";
+    const stepsIn = numInput(cfg.sim.stepsPerDay, v => { cfg.sim.stepsPerDay = v; validateSteps(); }, { min: 1, step: 1 });
+    function validateSteps() {
+      const s = parseFloat(cfg.sim.stepsPerDay);
+      _stepsBad = !isNaN(s) && s > MAX_STEPS;
+      stepsIn.classList.toggle("input-error", _stepsBad);
+      stepsWarn.style.display = _stepsBad ? "" : "none";
+      _updateRunEnabled();
     }
     grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, ageMinIn));
     grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, ageMaxIn));
-    grid.appendChild(field(S.sim.stepsPerDay.label, "", numInput(cfg.sim.stepsPerDay, v => cfg.sim.stepsPerDay = v, { min: 1, max: 25, step: 1 }), S.sim.stepsPerDay.help));
+    grid.appendChild(field(S.sim.stepsPerDay.label, "", stepsIn, S.sim.stepsPerDay.help));
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
       renderGrowth(growthHost);
@@ -212,10 +230,12 @@
     grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
     b.appendChild(grid);
     b.appendChild(ageWarn);
+    b.appendChild(stepsWarn);
     b.appendChild(ce("p", "media-doc-note",
       "To fit free web hosting, this app limits simulations to 12 years and 25 steps per day. " +
       "These limits and the default values can be changed — see the README (“Simulation limits”)."));
     validateAgeSpan();
+    validateSteps();
     parent.appendChild(sec);
   }
 

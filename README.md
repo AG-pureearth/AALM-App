@@ -182,7 +182,8 @@ or your own computer), you can restore the original behaviour:
 2. **Input caps** — in `frontend/js/app.js`, in the `renderSimulation` function:
    - raise or remove the simulation-length limit: change `const MAX_AGE_SPAN = 12;` to a
      larger number (or remove the `validateAgeSpan` check)
-   - change the steps-per-day field's `{ min: 1, max: 25, step: 1 }` back to `{ min: 1, step: 1 }`
+   - raise or remove the steps-per-day limit: change `const MAX_STEPS = 25;` to a larger
+     number (or remove the `validateSteps` check)
    - remove the on-screen limits note (the `media-doc-note` paragraph mentioning
      “12 years and 25 steps per day”)
 3. Bump the asset version in `frontend/index.html` (e.g. `?v=22` → `?v=23`) so browsers
