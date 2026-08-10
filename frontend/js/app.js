@@ -184,7 +184,7 @@
       inp.addEventListener("input", () => { cfg.simName = inp.value; });
       return inp;
     })(), S.sim.simName.help));
-    const MAX_AGE_SPAN = 12;
+    const MAX_AGE_SPAN = 40;
     const MAX_STEPS = 25;
     let _ageBad = false, _stepsBad = false;
     function _updateRunEnabled() {
@@ -192,7 +192,7 @@
       document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
     }
     // age-span validation (red warning when end − start exceeds the cap)
-    const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 12 years.");
+    const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 40 years.");
     ageWarn.style.display = "none";
     const ageMinIn = numInput(cfg.sim.ageMinYr, v => { cfg.sim.ageMinYr = v; validateAgeSpan(); }, { min: 0 });
     const ageMaxIn = numInput(cfg.sim.ageMaxYr, v => { cfg.sim.ageMaxYr = v; validateAgeSpan(); }, { min: 0 });
@@ -232,7 +232,7 @@
     b.appendChild(ageWarn);
     b.appendChild(stepsWarn);
     b.appendChild(ce("p", "media-doc-note",
-      "To fit free web hosting, this app limits simulations to 12 years and 25 steps per day. " +
+      "To fit free web hosting, this app limits simulations to 40 years and 25 steps per day. " +
       "These limits and the default values can be changed — see the README (“Simulation limits”)."));
     validateAgeSpan();
     validateSteps();

@@ -78,10 +78,9 @@ several minutes**). When it finishes, Cloud Run shows a public URL like
 3. **Auto-deploy is on:** every time you push to `main`, Cloud Build rebuilds and Cloud
    Run redeploys automatically.
 
-> **Allowing longer runs:** the app currently caps simulations at 12 years / 25 steps
-> (a leftover from the 512 MB Render tier). Cloud Run at 2 GiB has plenty of room, so you
-> can raise or remove that cap — see **“Simulation limits”** in `README.md`. For 40-year
-> runs, raise `MAX_AGE_SPAN` in `frontend/js/app.js` and push.
+> **Simulation limits:** the app caps simulations at **40 years / 25 steps per day**.
+> Cloud Run at 2 GiB has room for this. To change it, edit `MAX_AGE_SPAN` / `MAX_STEPS`
+> in `frontend/js/app.js` and push — see **“Simulation limits”** in `README.md`.
 
 ---
 

@@ -164,7 +164,7 @@ memory, which a free host doesn't have.
 | Default steps per day | **25** | 100 |
 | Default output interval (`outwrite`) | **25** | 100 |
 | Maximum steps per day | **25** | (uncapped) |
-| Maximum simulation length (end − start age) | **12 years** | (uncapped) |
+| Maximum simulation length (end − start age) | **40 years** | (uncapped) |
 
 These keep every run under ~512 MB. A message on the Simulation inputs tab tells users
 about the limits. `Dockerfile.wine` also sets `MALLOC_ARENA_MAX=2`, which caps the C
@@ -180,12 +180,12 @@ or your own computer), you can restore the original behaviour:
    - `"stepsPerDay": 100`   (currently `25`)
    - `"outwrite": 100`      (currently `25`)
 2. **Input caps** — in `frontend/js/app.js`, in the `renderSimulation` function:
-   - raise or remove the simulation-length limit: change `const MAX_AGE_SPAN = 12;` to a
+   - raise or remove the simulation-length limit: change `const MAX_AGE_SPAN = 40;` to a
      larger number (or remove the `validateAgeSpan` check)
    - raise or remove the steps-per-day limit: change `const MAX_STEPS = 25;` to a larger
      number (or remove the `validateSteps` check)
    - remove the on-screen limits note (the `media-doc-note` paragraph mentioning
-     “12 years and 25 steps per day”)
+     “40 years and 25 steps per day”)
 3. Bump the asset version in `frontend/index.html` (e.g. `?v=22` → `?v=23`) so browsers
    load the change.
 
