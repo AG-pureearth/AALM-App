@@ -19,7 +19,9 @@
     "<ul>" +
     "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
     "(the EPA executable defaults to 100).</li>" +
-    "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable allows up to 100 years).</li>" +
+    "<li><b>Simulation length:</b> must be between <b>25 and 40 years</b>. The 40-year ceiling keeps " +
+    "runs within the memory limits of free web hosting (the EPA executable allows up to 100 years); the " +
+    "25-year minimum avoids an error that arises in the EPA code for simulations shorter than 25 years.</li>" +
     "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
     "</ul>" +
     "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
@@ -218,7 +220,7 @@
 
   // ---------------------------------------------------------------- sections
   // shared run-validation state (age span + timesteps caps), used across tabs
-  const MAX_AGE_SPAN = 40, MAX_STEPS = 25;
+  const MAX_AGE_SPAN = 40, MIN_AGE_SPAN = 25, MAX_STEPS = 25;
   let _ageBad = false, _stepsBad = false;
   function updateRunEnabled() {
     const bad = _ageBad || _stepsBad;
@@ -235,22 +237,28 @@
       inp.addEventListener("input", () => { cfg.simName = inp.value; });
       return inp;
     })(), S.sim.simName.help));
-    // age-span validation (red warning when end − start exceeds the cap)
-    const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 40 years.");
+    // age-span validation (red warning when end − start is outside the 25–40 year window)
+    const ageWarn = ce("p", "age-warn");
     ageWarn.style.display = "none";
     const ageMinIn = numInput(cfg.sim.ageMinYr, v => { cfg.sim.ageMinYr = v; validateAgeSpan(); }, { min: 0 });
     const ageMaxIn = numInput(cfg.sim.ageMaxYr, v => { cfg.sim.ageMaxYr = v; validateAgeSpan(); }, { min: 0 });
     function validateAgeSpan() {
       const lo = parseFloat(cfg.sim.ageMinYr), hi = parseFloat(cfg.sim.ageMaxYr);
       const span = (isNaN(hi) ? 0 : hi) - (isNaN(lo) ? 0 : lo);
-      _ageBad = span > MAX_AGE_SPAN;
+      const tooBig = span > MAX_AGE_SPAN, tooSmall = span < MIN_AGE_SPAN;
+      _ageBad = tooBig || tooSmall;
       ageMinIn.classList.toggle("input-error", _ageBad);
       ageMaxIn.classList.toggle("input-error", _ageBad);
+      if (tooBig) ageWarn.textContent = "Simulation length cannot exceed 40 years.";
+      else if (tooSmall) ageWarn.textContent = "Simulation length cannot be less than 25 years.";
       ageWarn.style.display = _ageBad ? "" : "none";
       updateRunEnabled();
     }
     grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, ageMinIn));
-    grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, ageMaxIn));
+    const ageMaxField = field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, ageMaxIn,
+      "Simulation length (Age at end − Age at start) must be between 25 and 40 years.");
+    ageMaxField.appendChild(ce("p", "field-hint", "Simulation length must be at least 25 years."));
+    grid.appendChild(ageMaxField);
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
       renderGrowth(growthHost);

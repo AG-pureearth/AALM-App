@@ -2,7 +2,7 @@
   "simName": "Run1",
   "sim": {
     "ageMinYr": 0,
-    "ageMaxYr": 7,
+    "ageMaxYr": 25,
     "stepsPerDay": 25,
     "outwrite": 25,
     "irbc": 1,
