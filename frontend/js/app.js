@@ -239,8 +239,7 @@
       "web browser, this app changes a few settings from the standalone EPA AALM v3.1 executable:</p>" +
       "<ul>" +
       "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
-      "(the EPA executable defaults to 100). Fewer timesteps use less memory; for typical runs " +
-      "the results differ from full resolution by under ~1–2%.</li>" +
+      "(the EPA executable defaults to 100).</li>" +
       "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable is uncapped).</li>" +
       "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
       "</ul>" +
