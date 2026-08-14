@@ -228,7 +228,7 @@
       "<ul>" +
       "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
       "(the EPA executable defaults to 100).</li>" +
-      "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable is uncapped).</li>" +
+      "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable allows up to 100 years).</li>" +
       "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
       "</ul>" +
       "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
