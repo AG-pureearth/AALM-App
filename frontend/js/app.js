@@ -232,11 +232,11 @@
     b.appendChild(stepsWarn);
 
     const info = ce("details", "defaults-info");
-    info.appendChild(ce("summary", null, "How this app’s defaults differ from the EPA AALM software"));
+    info.appendChild(ce("summary", null, "Additional Info about input parameters"));
     const infoBody = ce("div", "defaults-info-body");
     infoBody.innerHTML =
-      "<p>To run efficiently in a web browser, this app changes a few settings from the " +
-      "standalone EPA AALM v3.1 executable:</p>" +
+      "<p><b>How this app’s defaults differ from the EPA AALM software.</b> To run efficiently in a " +
+      "web browser, this app changes a few settings from the standalone EPA AALM v3.1 executable:</p>" +
       "<ul>" +
       "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
       "(the EPA executable defaults to 100). Fewer timesteps use less memory; for typical runs " +
@@ -245,7 +245,12 @@
       "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
       "</ul>" +
       "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
-      "EPA AALM v3.1 software.</p>";
+      "EPA AALM v3.1 software.</p>" +
+      "<p><b>Mother’s blood lead.</b> By default the newborn is <b>not</b> lead-free at birth: the " +
+      "maternal blood lead (<b>BLDMOT</b>) is <b>0.62 µg/dL</b> and the model starts the child’s " +
+      "tissues from the mother’s blood (<b>IFETAL = 1</b>), giving an initial blood lead of about " +
+      "<b>0.53 µg/dL</b> for a run beginning at age 0. These are the EPA AALM defaults; you can change " +
+      "them (or turn maternal transfer off) under <b>Advanced options</b>.</p>";
     info.appendChild(infoBody);
     b.appendChild(info);
 
