@@ -12,6 +12,50 @@
   const round2 = (x) => Math.round(x * 100) / 100;   // all displayed model output uses 2 decimals
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
+  // Content for the "Information about App presets" pop-up (opened from the header link).
+  const PRESETS_INFO_HTML =
+    "<p><b>How this app’s defaults differ from the EPA AALM software.</b> To run efficiently in a " +
+    "web browser, this app changes a few settings from the standalone EPA AALM v3.1 executable:</p>" +
+    "<ul>" +
+    "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
+    "(the EPA executable defaults to 100).</li>" +
+    "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable allows up to 100 years).</li>" +
+    "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
+    "</ul>" +
+    "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
+    "EPA AALM v3.1 software.</p>" +
+    "<p><b>Mother’s blood lead.</b> By default the newborn is <b>not</b> lead-free at birth: the " +
+    "maternal blood lead (<b>BLDMOT</b>) is <b>0.62 µg/dL</b> and the model starts the child’s " +
+    "tissues from the mother’s blood (<b>IFETAL = 1</b>), giving an initial blood lead of about " +
+    "<b>0.53 µg/dL</b> for a run beginning at age 0. These are the EPA AALM defaults; you can change " +
+    "them (or turn maternal transfer off) under <b>Advanced options</b>.</p>";
+
+  // Build (once) and wire the presets-info modal to the header link.
+  function setupPresetsInfo() {
+    const link = document.getElementById("presets-link");
+    if (!link) return;
+    const overlay = ce("div", "info-overlay");
+    overlay.style.display = "none";
+    const modal = ce("div", "info-modal");
+    const close = ce("button", "info-close", "×");
+    close.setAttribute("aria-label", "Close");
+    const title = ce("h2", "info-modal-title", "Information about App presets");
+    const body = ce("div", "info-modal-body");
+    body.innerHTML = PRESETS_INFO_HTML;
+    modal.appendChild(close);
+    modal.appendChild(title);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const open = () => { overlay.style.display = "flex"; };
+    const hide = () => { overlay.style.display = "none"; };
+    link.addEventListener("click", ev => { ev.preventDefault(); open(); });
+    close.addEventListener("click", hide);
+    overlay.addEventListener("click", ev => { if (ev.target === overlay) hide(); });
+    document.addEventListener("keydown", ev => { if (ev.key === "Escape") hide(); });
+  }
+
   let DEFAULTS = null;   // canonical defaults from /api/defaults (incl. growthBySex)
   let cfg = null;        // the working run configuration
   let lastResult = null; // last successful /api/run response
@@ -218,28 +262,6 @@
     grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
     b.appendChild(grid);
     b.appendChild(ageWarn);
-
-    const info = ce("details", "defaults-info");
-    info.appendChild(ce("summary", null, "Additional Info about input parameters"));
-    const infoBody = ce("div", "defaults-info-body");
-    infoBody.innerHTML =
-      "<p><b>How this app’s defaults differ from the EPA AALM software.</b> To run efficiently in a " +
-      "web browser, this app changes a few settings from the standalone EPA AALM v3.1 executable:</p>" +
-      "<ul>" +
-      "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
-      "(the EPA executable defaults to 100).</li>" +
-      "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable allows up to 100 years).</li>" +
-      "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
-      "</ul>" +
-      "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
-      "EPA AALM v3.1 software.</p>" +
-      "<p><b>Mother’s blood lead.</b> By default the newborn is <b>not</b> lead-free at birth: the " +
-      "maternal blood lead (<b>BLDMOT</b>) is <b>0.62 µg/dL</b> and the model starts the child’s " +
-      "tissues from the mother’s blood (<b>IFETAL = 1</b>), giving an initial blood lead of about " +
-      "<b>0.53 µg/dL</b> for a run beginning at age 0. These are the EPA AALM defaults; you can change " +
-      "them (or turn maternal transfer off) under <b>Advanced options</b>.</p>";
-    info.appendChild(infoBody);
-    b.appendChild(info);
 
     validateAgeSpan();
     parent.appendChild(sec);
@@ -778,6 +800,7 @@
     $("#run-btn").addEventListener("click", runModel);
     const tb = $("#tour-btn");
     if (tb) tb.addEventListener("click", () => window.AALM_startTour(true));
+    setupPresetsInfo();
     setStatus("Ready. Set your inputs, then press “Run model”.", "");
     if (window.AALM_maybeAutoTour) window.AALM_maybeAutoTour();
   }
