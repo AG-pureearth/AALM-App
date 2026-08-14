@@ -730,19 +730,32 @@
 
   // ---------------------------------------------------------------- bootstrap
   let mediaHost, growthHost, iterSec;
-  async function init() {
-    try {
-      const r = await fetch(API + "/api/defaults");
-      DEFAULTS = await r.json();
-    } catch (e) {
-      setStatus("Could not load defaults from the server. Is the backend running?", "error");
-      return;
-    }
+  // Restore the working config to the server defaults (sim + media + advanced).
+  function resetCfgToDefaults() {
     cfg = clone(DEFAULTS);
     cfg.growth = clone(DEFAULTS.growthBySex[String(DEFAULTS.growth.sex)] || DEFAULTS.growth);
+  }
 
+  // A "Reset to defaults" button that restores every parameter and rebuilds both tabs.
+  function resetButton() {
+    const btn = ce("button", "reset-btn", "↺ Reset to defaults");
+    btn.type = "button";
+    btn.title = "Restore all input and advanced parameters to their default values";
+    btn.addEventListener("click", () => {
+      if (!window.confirm("Reset all parameters (inputs and advanced options) to their default values?")) return;
+      resetCfgToDefaults();
+      buildForms();
+      setStatus("All parameters reset to defaults.", "");
+    });
+    return btn;
+  }
+
+  // Build (or rebuild) both input tabs from the current cfg. Safe to call repeatedly.
+  function buildForms() {
     // --- Tab 1: Simulation inputs ---
     const vInputs = $("#view-inputs");
+    vInputs.innerHTML = "";
+    vInputs.appendChild(resetButton());
     mediaHost = ce("div");
     renderSimulation(vInputs);
     renderMedia(vInputs);
@@ -758,6 +771,8 @@
 
     // --- Tab 2: Advanced options (growth / physiology / lung) ---
     const vAdv = $("#view-advanced");
+    vAdv.innerHTML = "";
+    vAdv.appendChild(resetButton());
     const note = ce("p", "adv-note");
     note.innerHTML = "These parameters are pre-filled with the standard AALM values. " +
       "You only need this tab if you want to change the growth curve, physiology, or lung settings — " +
@@ -800,6 +815,18 @@
     renderPhysConst(vAdv);
     renderPhysTimeDep(vAdv);
     renderLung(vAdv);
+  }
+
+  async function init() {
+    try {
+      const r = await fetch(API + "/api/defaults");
+      DEFAULTS = await r.json();
+    } catch (e) {
+      setStatus("Could not load defaults from the server. Is the backend running?", "error");
+      return;
+    }
+    resetCfgToDefaults();
+    buildForms();
 
     // tab navigation
     document.querySelectorAll(".tab").forEach(t =>
