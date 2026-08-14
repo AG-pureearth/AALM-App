@@ -173,6 +173,14 @@
   }
 
   // ---------------------------------------------------------------- sections
+  // shared run-validation state (age span + timesteps caps), used across tabs
+  const MAX_AGE_SPAN = 40, MAX_STEPS = 25;
+  let _ageBad = false, _stepsBad = false;
+  function updateRunEnabled() {
+    const bad = _ageBad || _stepsBad;
+    document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
+  }
+
   function renderSimulation(parent) {
     const sec = section("Simulation");
     sec.dataset.tour = "sim";
@@ -183,13 +191,6 @@
       inp.addEventListener("input", () => { cfg.simName = inp.value; });
       return inp;
     })(), S.sim.simName.help));
-    const MAX_AGE_SPAN = 40;
-    const MAX_STEPS = 25;
-    let _ageBad = false, _stepsBad = false;
-    function _updateRunEnabled() {
-      const bad = _ageBad || _stepsBad;
-      document.querySelectorAll("#run-btn, .run-btn-lg").forEach(bn => { if (bn) bn.disabled = bad; });
-    }
     // age-span validation (red warning when end − start exceeds the cap)
     const ageWarn = ce("p", "age-warn", "Simulation time cannot exceed 40 years.");
     ageWarn.style.display = "none";
@@ -202,22 +203,10 @@
       ageMinIn.classList.toggle("input-error", _ageBad);
       ageMaxIn.classList.toggle("input-error", _ageBad);
       ageWarn.style.display = _ageBad ? "" : "none";
-      _updateRunEnabled();
-    }
-    // timesteps-per-day validation (red warning when it exceeds the cap)
-    const stepsWarn = ce("p", "age-warn", "Timesteps per day cannot exceed 25.");
-    stepsWarn.style.display = "none";
-    const stepsIn = numInput(cfg.sim.stepsPerDay, v => { cfg.sim.stepsPerDay = v; validateSteps(); }, { min: 1, step: 1 });
-    function validateSteps() {
-      const s = parseFloat(cfg.sim.stepsPerDay);
-      _stepsBad = !isNaN(s) && s > MAX_STEPS;
-      stepsIn.classList.toggle("input-error", _stepsBad);
-      stepsWarn.style.display = _stepsBad ? "" : "none";
-      _updateRunEnabled();
+      updateRunEnabled();
     }
     grid.appendChild(field(S.sim.ageMinYr.label, S.sim.ageMinYr.unit, ageMinIn));
     grid.appendChild(field(S.sim.ageMaxYr.label, S.sim.ageMaxYr.unit, ageMaxIn));
-    grid.appendChild(field(S.sim.stepsPerDay.label, "", stepsIn, S.sim.stepsPerDay.help));
     grid.appendChild(field(S.sim.sex.label, "", selectInput(cfg.growth.sex, S.sim.sex.options, v => {
       cfg.growth = clone(DEFAULTS.growthBySex[String(v)]);
       renderGrowth(growthHost);
@@ -229,7 +218,6 @@
     grid.appendChild(field(S.sim.irbc.label, "", selectInput(cfg.sim.irbc, S.sim.irbc.options, v => cfg.sim.irbc = v), S.sim.irbc.help));
     b.appendChild(grid);
     b.appendChild(ageWarn);
-    b.appendChild(stepsWarn);
 
     const info = ce("details", "defaults-info");
     info.appendChild(ce("summary", null, "Additional Info about input parameters"));
@@ -254,7 +242,6 @@
     b.appendChild(info);
 
     validateAgeSpan();
-    validateSteps();
     parent.appendChild(sec);
   }
 
@@ -756,6 +743,26 @@
     advDoc.appendChild(advLink);
     advDoc.appendChild(document.createTextNode("."));
     vAdv.appendChild(advDoc);
+
+    // Simulation resolution (timesteps) — moved here from the Simulation inputs tab
+    const resSec = section("Simulation resolution", { advanced: true, collapsed: false });
+    const resGrid = ce("div", "grid");
+    const stepsWarn = ce("p", "age-warn", "Timesteps per day cannot exceed 25.");
+    stepsWarn.style.display = "none";
+    const stepsIn = numInput(cfg.sim.stepsPerDay, v => { cfg.sim.stepsPerDay = v; validateSteps(); }, { min: 1, step: 1 });
+    function validateSteps() {
+      const s = parseFloat(cfg.sim.stepsPerDay);
+      _stepsBad = !isNaN(s) && s > MAX_STEPS;
+      stepsIn.classList.toggle("input-error", _stepsBad);
+      stepsWarn.style.display = _stepsBad ? "" : "none";
+      updateRunEnabled();
+    }
+    resGrid.appendChild(field(S.sim.stepsPerDay.label, "", stepsIn, S.sim.stepsPerDay.help));
+    resGrid.appendChild(field(S.sim.outwrite.label, "", numInput(cfg.sim.outwrite, v => cfg.sim.outwrite = v, { min: 1, step: 1 }), S.sim.outwrite.help));
+    resSec._body.appendChild(resGrid);
+    resSec._body.appendChild(stepsWarn);
+    vAdv.appendChild(resSec);
+    validateSteps();
 
     const growthSec = section("Growth parameters", { advanced: true, collapsed: false });
     growthHost = ce("div"); growthSec._body.appendChild(growthHost); renderGrowth(growthHost);
