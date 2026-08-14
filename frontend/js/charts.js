@@ -36,7 +36,7 @@
     if (v === 0) return "0";
     const a = Math.abs(v);
     if (a >= 1000 || a < 0.01) return v.toExponential(1);
-    return (Math.round(v * 1000) / 1000).toString();
+    return (Math.round(v * 100) / 100).toString();   // 2 decimals for displayed output
   }
 
   // linear interpolation of ys (aligned to xs) at position x

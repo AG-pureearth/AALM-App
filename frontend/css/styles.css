@@ -76,6 +76,12 @@ main { padding: 18px; max-width: 1180px; margin: 0 auto; }
 /* informational note linking the technical guidance document */
 .media-doc-note { font-size: .85rem; color: #4a5b73; margin: 0 0 12px; line-height: 1.45; }
 .media-doc-note a { color: #0969da; }
+.defaults-info { margin: 2px 0 12px; }
+.defaults-info > summary { cursor: pointer; color: #0969da; font-size: .85rem; width: fit-content; }
+.defaults-info > summary:hover { text-decoration: underline; }
+.defaults-info-body { font-size: .85rem; color: #4a5b73; line-height: 1.5; margin: 8px 0 0; }
+.defaults-info-body ul { margin: 6px 0; padding-left: 20px; }
+.defaults-info-body li { margin: 3px 0; }
 input.input-error { border-color: #cf222e; background: #fff5f5; }
 .age-warn { color: #cf222e; font-weight: 600; font-size: .85rem; margin: 6px 0 0; }
 

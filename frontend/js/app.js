@@ -9,8 +9,7 @@
   const clone = (o) => (window.structuredClone ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
   const $ = (sel, root = document) => root.querySelector(sel);
   const ce = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-  const round2 = (x) => Math.round(x * 100) / 100;
-  const round3 = (x) => Math.round(x * 1000) / 1000;
+  const round2 = (x) => Math.round(x * 100) / 100;   // all displayed model output uses 2 decimals
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
   let DEFAULTS = null;   // canonical defaults from /api/defaults (incl. growthBySex)
@@ -231,9 +230,25 @@
     b.appendChild(grid);
     b.appendChild(ageWarn);
     b.appendChild(stepsWarn);
-    b.appendChild(ce("p", "media-doc-note",
-      "To fit free web hosting, this app limits simulations to 40 years and 25 steps per day. " +
-      "These limits and the default values can be changed — see the README (“Simulation limits”)."));
+
+    const info = ce("details", "defaults-info");
+    info.appendChild(ce("summary", null, "How this app’s defaults differ from the EPA AALM software"));
+    const infoBody = ce("div", "defaults-info-body");
+    infoBody.innerHTML =
+      "<p>To run efficiently in a web browser, this app changes a few settings from the " +
+      "standalone EPA AALM v3.1 executable:</p>" +
+      "<ul>" +
+      "<li><b>Timesteps per day:</b> the app defaults to <b>25</b> and is <b>capped at 25</b> " +
+      "(the EPA executable defaults to 100). Fewer timesteps use less memory; for typical runs " +
+      "the results differ from full resolution by under ~1–2%.</li>" +
+      "<li><b>Simulation length:</b> capped at <b>40 years</b> (the EPA executable is uncapped).</li>" +
+      "<li><b>Output interval:</b> the app records output every 25 timesteps (EPA default: 100).</li>" +
+      "</ul>" +
+      "<p>All other settings — growth, physiology, lung, and exposure-media defaults — match the " +
+      "EPA AALM v3.1 software.</p>";
+    info.appendChild(infoBody);
+    b.appendChild(info);
+
     validateAgeSpan();
     validateSteps();
     parent.appendChild(sec);
@@ -530,7 +545,7 @@
       const val = geo ? fst.geomean : fst.mean;
       const c = ce("div", "stat clickable" + (activeStats.has("mean") ? " active" : ""));
       c.title = "Draw the average as a line on the chart";
-      c.appendChild(ce("div", "stat-val", (isFinite(val) ? round3(val) : "n/a") + (funit ? " " + funit : "")));
+      c.appendChild(ce("div", "stat-val", (isFinite(val) ? round2(val) : "n/a") + (funit ? " " + funit : "")));
       c.appendChild(ce("div", "stat-lab", (geo ? "Geometric mean " : "Mean ") + fmeta.label));
       const tog = ce("div", "mean-toggle");
       const mk = (mode, text) => {
@@ -550,12 +565,12 @@
       return c;
     }
 
-    cards.appendChild(statCard("max", `Max ${fmeta.label}`, round3(fst.max), funit, "Mark the maximum on the chart"));
+    cards.appendChild(statCard("max", `Max ${fmeta.label}`, round2(fst.max), funit, "Mark the maximum on the chart"));
     cards.appendChild(statCard(null, "Age at max", round2(fst.maxAge), "yr"));
-    cards.appendChild(statCard("min", `Min ${fmeta.label}`, round3(fst.min), funit, "Mark the minimum on the chart"));
+    cards.appendChild(statCard("min", `Min ${fmeta.label}`, round2(fst.min), funit, "Mark the minimum on the chart"));
     cards.appendChild(statCard(null, "Age at min", round2(fst.minAge), "yr"));
     cards.appendChild(meanCard());
-    cards.appendChild(statCard("final", `Final ${fmeta.label}`, round3(fst.final), funit, "Mark the final value"));
+    cards.appendChild(statCard("final", `Final ${fmeta.label}`, round2(fst.final), funit, "Mark the final value"));
     host.appendChild(cards);
 
     host.appendChild(ce("p", "stat-hint",
@@ -593,7 +608,7 @@
       if (isNaN(a)) a = markerAge;
       a = clamp(a, ageMin, ageMax);
       markerAge = a;
-      bllVal.textContent = round3(window.AALM_interp(xs, data.series[focusKey], a));
+      bllVal.textContent = round2(window.AALM_interp(xs, data.series[focusKey], a));
       sub.textContent = `estimated ${fmeta.label.toLowerCase()} at age ${round2(a)} yr`;
       estTable.innerHTML = "";
       const keys = [...selectedSeries].filter(k => data.series[k] && k !== focusKey);
@@ -603,7 +618,7 @@
           const meta = S.outputs.meta[k] || { label: k, unit: "" };
           const row = ce("div", "est-row");
           row.appendChild(ce("span", "est-k", meta.label + (meta.unit ? ` (${meta.unit})` : "")));
-          row.appendChild(ce("span", "est-v", round3(window.AALM_interp(xs, data.series[k], a))));
+          row.appendChild(ce("span", "est-v", round2(window.AALM_interp(xs, data.series[k], a))));
           estTable.appendChild(row);
         });
       }
@@ -670,12 +685,12 @@
     const ann = { hlines: [], points: [] };
     if (activeStats.has("mean")) {
       const mv = meanMode === "geo" ? fst.geomean : fst.mean;
-      if (isFinite(mv)) ann.hlines.push({ y: round3(mv), color: "#CC79A7",
-        label: (meanMode === "geo" ? "geo mean " : "mean ") + round3(mv) });
+      if (isFinite(mv)) ann.hlines.push({ y: round2(mv), color: "#CC79A7",
+        label: (meanMode === "geo" ? "geo mean " : "mean ") + round2(mv) });
     }
-    if (activeStats.has("max")) ann.points.push({ x: fst.maxAge, y: fst.max, color: "#D55E00", label: "max " + round3(fst.max) });
-    if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0072B2", label: "min " + round3(fst.min) });
-    if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#009E73", label: "final " + round3(fst.final) });
+    if (activeStats.has("max")) ann.points.push({ x: fst.maxAge, y: fst.max, color: "#D55E00", label: "max " + round2(fst.max) });
+    if (activeStats.has("min")) ann.points.push({ x: fst.minAge, y: fst.min, color: "#0072B2", label: "min " + round2(fst.min) });
+    if (activeStats.has("final")) ann.points.push({ x: fst.finalAge, y: fst.final, color: "#009E73", label: "final " + round2(fst.final) });
     renderChart($("#chart"), {
       x: data.xYears, series, xLabel: "Age (years)", yLabel, annotations: ann
     });
@@ -685,7 +700,7 @@
     const keys = [...selectedSeries].filter(k => data.series[k]);
     let csv = "Age_years," + keys.join(",") + "\n";
     for (let i = 0; i < data.xYears.length; i++) {
-      csv += data.xYears[i] + "," + keys.map(k => data.series[k][i]).join(",") + "\n";
+      csv += data.xYears[i] + "," + keys.map(k => round2(data.series[k][i])).join(",") + "\n";
     }
     const blob = new Blob([csv], { type: "text/csv" });
     const a = ce("a"); a.href = URL.createObjectURL(blob); a.download = `${data.name}_plot.csv`; a.click();
