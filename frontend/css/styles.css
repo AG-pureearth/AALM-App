@@ -192,6 +192,14 @@ svg.chart { background: #fff; border: 1px solid var(--line); border-radius: 8px;
 .chart-tip { position: absolute; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; font-size: .8rem; pointer-events: none; box-shadow: var(--shadow); z-index: 5; }
 .chart-tip .tip-x { color: var(--muted); margin-bottom: 3px; }
 .chart-tip .tip-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.chart-zoom { position: absolute; top: 8px; right: 10px; display: flex; gap: 4px; z-index: 6; }
+.chart-zoom button {
+  width: 26px; height: 26px; padding: 0; background: rgba(255,255,255,.95); border: 1px solid var(--line);
+  border-radius: 6px; color: #424a53; font-size: .95rem; font-weight: 700; line-height: 1; cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.chart-zoom button:last-child { width: auto; padding: 0 10px; font-size: .78rem; font-weight: 600; }
+.chart-zoom button:hover { background: #eef2f6; color: var(--ink); }
 button.secondary { margin-top: 10px; background: #fff; border: 1px solid var(--line); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: .85rem; }
 button.secondary:hover { background: #f0f3f6; }
 
